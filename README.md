@@ -42,12 +42,13 @@ Der Browser ruft die externe API nicht direkt auf, CORS ist kein Problem. Die Me
 
 [![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-ortsnetz-auslastung&category=integration)
 
-1. In HACS **Benutzerdefinierte Repositories** öffnen.
-2. `https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung` hinzufügen, Typ **Integration**.
-3. **Ortsnetz Map** installieren (für Vorabversionen **⋮ → Beta-Versionen anzeigen**).
-4. Home Assistant neu starten.
-5. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ortsnetz Map**.
-6. Browser bzw. App vollständig neu laden. Die Karte erscheint als **Ortsnetz Map** im Karten-Picker.
+1. HACS öffnen und nach **Ortsnetz Map** suchen.
+2. **Ortsnetz Map** auswählen und installieren (für Vorabversionen **⋮ → Beta-Versionen anzeigen**).
+3. Home Assistant neu starten.
+4. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ortsnetz Map**.
+5. Browser bzw. App vollständig neu laden. Die Karte erscheint als **Ortsnetz Map** im Karten-Picker.
+
+Falls **Ortsnetz Map** noch nicht im HACS-Katalog angezeigt wird, kann das Repository alternativ unter **HACS → Benutzerdefinierte Repositories** mit der URL `https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung` und dem Typ **Integration** hinzugefügt werden.
 
 ## Umstieg von den bisherigen Repositories
 
@@ -55,7 +56,7 @@ Bisher gab es zwei Repositories: *Home-Assistant-Ortsnetz-Map* (Backend) und *or
 
 1. In HACS das alte **Ortsnetz Map Backend** und die alte **Ortsnetz Map Card** entfernen.
 2. Falls die Card von Hand als Dashboard-Ressource eingetragen war, den Eintrag unter **Einstellungen → Dashboards → Ressourcen** löschen.
-3. Dieses Repository wie oben installieren und Home Assistant neu starten.
+3. **Ortsnetz Map** wie oben über die HACS-Suche installieren und Home Assistant neu starten.
 4. Browser bzw. App vollständig neu laden.
 
 Die vorhandene Integration (Eintrag unter Geräte & Dienste) bleibt bestehen. Bestehende Dashboards mit `type: custom:ortsnetz-map-card` funktionieren weiter. Würde die alte Card parallel geladen, gewinnt die zuerst geladene Version; deshalb sollte sie entfernt werden.
