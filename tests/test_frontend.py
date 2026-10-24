@@ -59,7 +59,14 @@ async def test_setup_works_without_http_server(
 
 def test_maplibre_ships_with_the_integration() -> None:
     """MapLibre GL is served locally instead of from a CDN."""
-    for name in ("maplibre-gl.js", "maplibre-gl.css", "LICENSE.txt"):
+    for name in (
+        "maplibre-gl.js",
+        "6.4.1/maplibre-gl.mjs",
+        "6.4.1/maplibre-gl-shared.mjs",
+        "6.4.1/maplibre-gl-worker.mjs",
+        "maplibre-gl.css",
+        "LICENSE.txt",
+    ):
         assert (MAPLIBRE_DIR / name).is_file()
     card = CARD_FILE.read_text(encoding="utf-8")
     # Card und Backend verwenden denselben Pfad.
