@@ -182,7 +182,7 @@ export async function installRoutes(page, { tileDelay = 0, glyphsFail = false, s
       if (url.pathname === "/harness.html") return route.fulfill({ status: 200, contentType: "text/html", body: HARNESS_HTML });
       if (url.pathname === "/card.js") return fulfillFile(route, path.join(WWW, "ortsnetz-map-card.js"), "text/javascript");
       if (url.pathname.startsWith("/ortsnetz_map/maplibre/")) {
-        const name = path.basename(url.pathname);
+        const name = url.pathname.slice("/ortsnetz_map/maplibre/".length);
         const type = name.endsWith(".css") ? "text/css" : "text/javascript";
         return fulfillFile(route, path.join(WWW, "maplibre", name), type);
       }

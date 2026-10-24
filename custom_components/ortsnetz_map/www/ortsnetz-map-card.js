@@ -1,6 +1,6 @@
-// Ortsnetz Map Card v2.1.1
+// Ortsnetz Map Card v3.0.0
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
-const MAPLIBRE_VERSION = "5.7.1";
+const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
 const MAPLIBRE_JS = `${MAPLIBRE_BASE}/maplibre-gl.js?v=${MAPLIBRE_VERSION}`;
 const MAPLIBRE_CSS = `${MAPLIBRE_BASE}/maplibre-gl.css?v=${MAPLIBRE_VERSION}`;
@@ -112,7 +112,7 @@ function normalizeConfig(config) {
 
 const CONFIG_KEYS = [...Object.keys(DEFAULT_CONFIG), "latitude", "longitude"];
 
-// Hinweistexte der kooperativen Gesten (Schlüssel aus MapLibre 5.7.1).
+// Hinweistexte der kooperativen Gesten (Schlüssel aus MapLibre).
 const COOPERATIVE_LOCALE = {
   "CooperativeGesturesHandler.WindowsHelpText": "Strg + Mausrad zum Zoomen der Karte",
   "CooperativeGesturesHandler.MacHelpText": "⌘ + Mausrad zum Zoomen der Karte",
@@ -125,7 +125,7 @@ const RETRY_DELAYS = [15, 30, 60];
 let mapLibrePromise;
 
 function loadMapLibre() {
-  if (window.maplibregl) return Promise.resolve(window.maplibregl);
+  if (window.ortsnetzMapLibre) return Promise.resolve(window.ortsnetzMapLibre);
   if (mapLibrePromise) return mapLibrePromise;
 
   mapLibrePromise = new Promise((resolve, reject) => {
@@ -143,16 +143,16 @@ function loadMapLibre() {
       reject(new Error("MapLibre konnte nicht geladen werden"));
     };
     const done = () => {
-      if (!window.maplibregl) return fail(null);
-      // Danach genügt die Prüfung auf window.maplibregl.
+      if (!window.ortsnetzMapLibre) return fail(null);
+      // Danach genügt die Prüfung auf window.ortsnetzMapLibre.
       mapLibrePromise = undefined;
-      resolve(window.maplibregl);
+      resolve(window.ortsnetzMapLibre);
     };
 
     const existing = document.querySelector(`script[src="${MAPLIBRE_JS}"]`);
     if (existing) {
-      if (window.maplibregl) {
-        resolve(window.maplibregl);
+      if (window.ortsnetzMapLibre) {
+        resolve(window.ortsnetzMapLibre);
       } else {
         existing.addEventListener("load", done, { once: true });
         existing.addEventListener("error", () => fail(existing), { once: true });
@@ -161,6 +161,7 @@ function loadMapLibre() {
     }
 
     const script = document.createElement("script");
+    script.type = "module";
     script.src = MAPLIBRE_JS;
     script.onload = done;
     script.onerror = () => fail(script);

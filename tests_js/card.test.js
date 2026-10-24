@@ -162,6 +162,7 @@ beforeAll(async () => {
 beforeEach(() => {
   maps.length = 0;
   markers.length = 0;
+  delete window.ortsnetzMapLibre;
   delete window.maplibregl;
   document.head.querySelectorAll("script, link").forEach((element) => element.remove());
   document.body.innerHTML = "";
@@ -213,6 +214,31 @@ describe("Escaping von API-Werten", () => {
     const card = newCard();
     card._applyScale({ scale: { criticalLow: "200", warningLow: "<b>", warningHigh: 240 } });
     expect(card._scale).toEqual({ criticalLow: 200, warningLow: 218, warningHigh: 240, criticalHigh: 253 });
+  });
+
+  it("erzeugt aus manipulierten Popup-Daten keine Elemente oder Event-Attribute", () => {
+    const card = newCard();
+    const payload = '\"><svg onload="alert(document.cookie)"><a href="javascript:alert(1)">';
+    const popup = document.createElement("div");
+    popup.innerHTML = card._popupHtml(Object.fromEntries([
+      "l1_v", "l2_v", "l3_v", "grid_frequency_hz", "sample_count", "observed_at",
+      "forecast_kwh_per_kwp_day", "pv_forecast_kwh", "public_id", "stale",
+    ].map((key) => [key, payload])));
+
+    expect(popup.querySelector("svg, a, script, img, iframe")).toBeNull();
+    expect(popup.querySelector("[onload], [onerror], [onclick], [href]")).toBeNull();
+    expect(popup.textContent).toContain("Messungen: –");
+  });
+
+  it("verhindert HTML und URL-Injektion über API-Farben auch in SVG-Clustern", () => {
+    const card = newCard();
+    card._applyScale({ scale: { colors: Array(5).fill('url(https://example.test/track)"><image onload="alert(1)') } });
+    const cluster = card._clusterElement({ normal: 3, warn_high: 2, point_count: 5 });
+
+    expect(cluster.querySelector("image, a, script, [onload], [onerror], [href]")).toBeNull();
+    expect(cluster.querySelectorAll("path")).toHaveLength(2);
+    expect(cluster.innerHTML).not.toContain("example.test");
+    expect(cluster.getAttribute("aria-label")).toContain("5 Messpunkten");
   });
 });
 
@@ -615,6 +641,24 @@ describe("FakeMap", () => {
 // ---- Lebenszyklus --------------------------------------------------------------
 
 describe("Initialisierung", () => {
+  it("verwendet keine fremde möglicherweise verwundbare globale MapLibre-Version", async () => {
+    window.maplibregl = { Map: vi.fn(() => { throw new Error("old global"); }) };
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    const script = mapLibreScript();
+    expect(script.type).toBe("module");
+    expect(script.src).toContain("v=6.4.1");
+    expect(maps).toHaveLength(0);
+
+    window.ortsnetzMapLibre = fakeMapLibre;
+    script.dispatchEvent(new Event("load"));
+    await flush();
+
+    expect(window.maplibregl.Map).not.toHaveBeenCalled();
+    expect(card._map).toBe(maps[0]);
+  });
+
   it("legt nach Trennen und Neuverbinden während des Ladens nur eine Karte an", async () => {
     const card = newCard();
     card.hass = makeHass();
@@ -622,7 +666,7 @@ describe("Initialisierung", () => {
     card.remove();
     document.body.appendChild(card); // Aufbau B
 
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     mapLibreScript().dispatchEvent(new Event("load"));
     await flush();
 
@@ -637,7 +681,7 @@ describe("Initialisierung", () => {
     document.body.appendChild(card);
     card.remove();
 
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     mapLibreScript().dispatchEvent(new Event("load"));
     await flush();
 
@@ -668,7 +712,7 @@ describe("Initialisierung", () => {
 
 describe("Kartenhintergrund nicht erreichbar", () => {
   async function mountedCard(hass = makeHass()) {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.hass = hass;
     document.body.appendChild(card);
@@ -756,7 +800,7 @@ describe("Theme-Wechsel", () => {
   const labels = { ...source };
 
   async function transform() {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.hass = makeHass();
     document.body.appendChild(card);
@@ -839,7 +883,7 @@ describe("Abruf der Messwerte", () => {
 
 describe("Touch-Bedienung", () => {
   async function mapFor(config) {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.setConfig(config);
     card.hass = makeHass();
@@ -912,7 +956,7 @@ describe("Abruf nach Fehlern", () => {
       addEventListener: vi.fn((type, handler) => { (handlers[type] ||= []).push(handler); }),
       removeEventListener: vi.fn((type, handler) => { handlers[type] = (handlers[type] || []).filter((h) => h !== handler); }),
     };
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.hass = makeHass({ connection });
     document.body.appendChild(card);
@@ -995,7 +1039,7 @@ describe("Abruf nach Fehlern", () => {
 
 describe("Diagnosezeile", () => {
   it("ist ohne debug ausgeblendet", async () => {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.setConfig({});
     card.hass = makeHass();
@@ -1005,7 +1049,7 @@ describe("Diagnosezeile", () => {
   });
 
   it("zeigt mit debug: true Zoom, gesetzte Punkte, Cluster und sichtbare Einzelpunkte", async () => {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.setConfig({ debug: true });
     card.hass = makeHass();
@@ -1118,7 +1162,7 @@ describe("Editor: Eingaben", () => {
 
 describe("setConfig ohne Neuaufbau", () => {
   async function mounted(config = {}) {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.setConfig(config);
     card.hass = makeHass();
@@ -1191,7 +1235,7 @@ describe("setConfig ohne Neuaufbau", () => {
 
 describe("Quellenangabe", () => {
   it("ist kompakt", async () => {
-    window.maplibregl = fakeMapLibre;
+    window.ortsnetzMapLibre = fakeMapLibre;
     const card = newCard();
     card.hass = makeHass();
     document.body.appendChild(card);

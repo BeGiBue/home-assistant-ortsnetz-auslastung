@@ -4,7 +4,7 @@
 
 # Ortsnetz Map
 
-**Version 2.1.1**
+**Version 3.0.0**
 
 Home-Assistant-Integration mit Dashboard-Karte für die öffentlichen Messpunkte von [ortsnetz-auslastung.de](https://www.ortsnetz-auslastung.de/). Die Integration lädt die Daten serverseitig, speichert sie bedarfsgesteuert zwischen und liefert gleich die passende Karte mit. Backend und Card sind hier in **einem** HACS-Repository zusammengeführt.
 
@@ -49,6 +49,20 @@ Der Browser ruft die externe API nicht direkt auf, CORS ist kein Problem. Die Me
 5. Browser bzw. App vollständig neu laden. Die Karte erscheint als **Ortsnetz Map** im Karten-Picker.
 
 Falls **Ortsnetz Map** noch nicht im HACS-Katalog angezeigt wird, kann das Repository alternativ unter **HACS → Benutzerdefinierte Repositories** mit der URL `https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung` und dem Typ **Integration** hinzugefügt werden.
+
+## Wechsel vom benutzerdefinierten Repository zum HACS-Katalog
+
+Das Projekt ist in den offiziellen HACS-Katalog aufgenommen worden. Für eine bereits installierte Version **dieses Repositories**:
+
+1. In HACS nach **Ortsnetz Map** suchen und prüfen, ob das Projekt im offiziellen Katalog verfügbar ist. Falls es noch fehlt, die HACS-Informationen aktualisieren und später erneut prüfen.
+2. Unter **HACS → Benutzerdefinierte Repositories** nur den Eintrag für `BeGiBue/home-assistant-ortsnetz-auslastung` entfernen.
+3. **Die bestehende Installation nicht deinstallieren.** Den Eintrag unter Geräte & Dienste, die Dashboard-Karten und deren Konfiguration behalten.
+4. HACS aktualisieren bzw. neu laden und kontrollieren, dass **Ortsnetz Map** weiterhin als installiert erscheint und Aktualisierungen angeboten werden.
+5. Ein angebotenes Update regulär installieren, Home Assistant neu starten und das Frontend vollständig neu laden. Anschließend die vorhandenen Karten prüfen.
+
+Die Domain `ortsnetz_map`, WebSocket-Befehle und `type: custom:ortsnetz-map-card` bleiben erhalten. Die Major-Version 3.0.0 kennzeichnet die Aufnahme in den offiziellen HACS-Katalog; eine Major-Version bedeutet nicht automatisch Breaking Changes. Für diesen Wechsel ist keine Neukonfiguration vorgesehen. Das enthaltene Sicherheitsupdate von MapLibre setzt einen aktuellen Browser mit WebGL 2 und Unterstützung für JavaScript-Modul-Worker voraus; ältere Kiosk-Browser gegebenenfalls vor dem Update aktualisieren.
+
+Der folgende Abschnitt betrifft dagegen die älteren, getrennten Backend- und Card-Repositories und ist für den reinen Katalogwechsel nicht nötig.
 
 ## Umstieg von den bisherigen Repositories
 
@@ -115,7 +129,7 @@ Ortsnetz Map Card
 
 ## Externe Bibliothek / Karte
 
-- [MapLibre GL JS](https://maplibre.org/) 5.7.1 (BSD-3-Clause, Lizenz in `custom_components/ortsnetz_map/www/maplibre/LICENSE.txt`), wird mit der Integration ausgeliefert und von Home Assistant bereitgestellt
+- [MapLibre GL JS](https://maplibre.org/) 6.4.1 (BSD-3-Clause, Lizenz und Herkunftsnachweis in `custom_components/ortsnetz_map/www/maplibre/`), wird mit der Integration ausgeliefert und von Home Assistant bereitgestellt. Das Update behebt [CVE-2026-85061 / GHSA-jrc7-96c5-q579](https://github.com/maplibre/maplibre-gl-js/security/advisories/GHSA-jrc7-96c5-q579), eine XSS-Lücke bei der Verarbeitung fremder Quellenangaben.
 - [OpenFreeMap](https://openfreemap.org/)-Vektorkarten (Stile „Liberty“ und „Dark“) auf Basis von OpenStreetMap-Daten, geladen von `tiles.openfreemap.org`
 
 Der Browser muss `tiles.openfreemap.org` erreichen können; ein externes CDN für MapLibre ist nicht mehr nötig. Die Messdaten selbst laufen ausschließlich über Home Assistant. Ist der Kartenhintergrund nicht erreichbar (z. B. durch einen Werbeblocker wie Pi-hole oder ohne Internet), zeigt die Karte Messpunkte und Tortendiagramme (mit Anzahl) auf einem neutralen Hintergrund und nennt das Problem in der Statuszeile. Lädt wieder eine Kachel, verschwindet der Hinweis; der nächste Wechsel zwischen hellem und dunklem Theme versucht wieder den echten Kartenstil.
@@ -153,6 +167,7 @@ Die Tests prüfen die Browser-Engines, nicht ein echtes iPad, die Companion-App 
 ## Voraussetzungen
 
 - Home Assistant 2026.6.0 oder neuer
+- Aktueller Browser mit WebGL 2 und JavaScript-Modul-Workern; dies gilt auch für Kiosk-Geräte und die WebView der Companion-App.
 - Internetzugriff des Home-Assistant-Servers auf `www.ortsnetz-auslastung.de`
 
 ## Hinweise
