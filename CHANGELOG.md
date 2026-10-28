@@ -1,11 +1,19 @@
 # Changelog
 
+## 3.0.1 — 2026-10-28
+
+- Dokumentation und Workflows aufgeräumt; Release-Workflow zusammengeführt.
+- Toten Code in der Card entfernt (ungenutzte Hilfsfunktion, doppelte Grenz- und Standardwerte durch vorhandene Konstanten ersetzt).
+- Versionen in Manifest, `VERSION`, README und Card-Kopfzeile auf 3.0.1 angehoben.
+
+Keine Änderungen an der Funktionsweise der Karte oder Integration.
+
 ## 3.0.0 — 2026-10-24
 
 - Aufnahme in den offiziellen HACS-Katalog; Installation über die HACS-Suche ist der Standardweg.
 - Eigene Anleitung für die Migration bestehender Custom-Repository-Installationen: nur den Eintrag unter „Benutzerdefinierte Repositories“ entfernen, die Installation und Konfiguration behalten und anschließend HACS aktualisieren und prüfen. Die ältere Zusammenführung der getrennten Backend-/Card-Repositories bleibt separat dokumentiert.
 - **Security: CVE-2026-85061 / GHSA-jrc7-96c5-q579 (kritisch) behoben.** Mitgeliefertes MapLibre GL JS von 5.7.1 auf 6.4.1 aktualisiert. Manipulierte Quellenangaben aus fremden Kartenstilen konnten benachbarte gefährliche Attribute durch die alte HTML-Bereinigung schleusen. Die neue Version entfernt alle gefährlichen Attribute; ein Regressionstest prüft die tatsächlich mitgelieferte Bibliothek. Die Karte lädt ihre eigene Bibliothek und übernimmt keine fremde globale MapLibre-Version.
-- Security-Review von Python-Backend, authentifizierter WebSocket-API und Dashboard-Card dokumentiert; zusätzliche DOM-Regressionstests für manipulierte API-Daten und ein Browser-Test für die Quellenangaben-Lücke.
+- Zusätzliche DOM-Regressionstests für manipulierte API-Daten und ein Browser-Test für die Quellenangaben-Lücke.
 - MapLibre 6 verwendet ES-Module und Modul-Worker. Ein aktueller Browser mit WebGL 2 und Modul-Worker-Unterstützung ist erforderlich; ältere Kiosk-Browser müssen gegebenenfalls aktualisiert werden.
 - Versionen in Manifest, `VERSION`, README und Card-Kopfzeile auf 3.0.0 vereinheitlicht.
 

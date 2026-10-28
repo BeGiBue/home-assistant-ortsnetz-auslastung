@@ -322,22 +322,26 @@ describe("Cluster", () => {
 
   it("zeichnet ohne Torten Cluster-Kreis, Zähler und Einzelpunkte in dieser Reihenfolge", () => {
     const Card = customElements.get("ortsnetz-map-card");
+    const previous = Card.clusterPies;
     Card.clusterPies = false;
-    const { card, map } = cardWithMap();
-    card._renderPoints({ points: [POINT] });
-    expect(map.layers.map((layer) => layer.id)).toEqual(["ortsnetz-clusters", "ortsnetz-cluster-count", "ortsnetz-points"]);
-    const [circle, count, points] = map.layers;
-    expect(circle.filter).toEqual(["has", "point_count"]);
-    expect(count.layout["text-font"]).toEqual(["Noto Sans Regular"]);
-    expect(count.layout["text-field"]).toEqual(["get", "point_count_abbreviated"]);
-    // Zähler auf eigener, gleich konfigurierter Quelle: Schriftfehler treffen nur ihn.
-    expect(count.source).toBe("ortsnetz-cluster-labels");
-    expect(map.sources["ortsnetz-cluster-labels"]).toMatchObject({ cluster: true, clusterRadius: 45, clusterMaxZoom: 11 });
-    expect(map.sources["ortsnetz-cluster-labels"].data).toBe(map.sources["ortsnetz-points"].data);
-    expect(circle.source).toBe("ortsnetz-points");
-    expect(points.source).toBe("ortsnetz-points");
-    Card.clusterPies = true;
-    expect(points.filter).toEqual(["!", ["has", "point_count"]]);
+    try {
+      const { card, map } = cardWithMap();
+      card._renderPoints({ points: [POINT] });
+      expect(map.layers.map((layer) => layer.id)).toEqual(["ortsnetz-clusters", "ortsnetz-cluster-count", "ortsnetz-points"]);
+      const [circle, count, points] = map.layers;
+      expect(circle.filter).toEqual(["has", "point_count"]);
+      expect(count.layout["text-font"]).toEqual(["Noto Sans Regular"]);
+      expect(count.layout["text-field"]).toEqual(["get", "point_count_abbreviated"]);
+      // Zähler auf eigener, gleich konfigurierter Quelle: Schriftfehler treffen nur ihn.
+      expect(count.source).toBe("ortsnetz-cluster-labels");
+      expect(map.sources["ortsnetz-cluster-labels"]).toMatchObject({ cluster: true, clusterRadius: 45, clusterMaxZoom: 11 });
+      expect(map.sources["ortsnetz-cluster-labels"].data).toBe(map.sources["ortsnetz-points"].data);
+      expect(circle.source).toBe("ortsnetz-points");
+      expect(points.source).toBe("ortsnetz-points");
+      expect(points.filter).toEqual(["!", ["has", "point_count"]]);
+    } finally {
+      Card.clusterPies = previous;
+    }
   });
 
   it("lässt den Zähler weg, wenn der Stil keine Glyphen hat", () => {

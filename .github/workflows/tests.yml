@@ -41,7 +41,6 @@ jobs:
           node-version: "24"
       - run: npm ci
       - run: npm test
-      - run: node --check custom_components/ortsnetz_map/www/ortsnetz-map-card.js
 
   browser:
     name: Card im Browser (Playwright, Chromium und WebKit)

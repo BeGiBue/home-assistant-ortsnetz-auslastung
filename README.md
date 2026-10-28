@@ -4,7 +4,7 @@
 
 # Ortsnetz Map
 
-**Version 3.0.0**
+**Version 3.0.1**
 
 Home-Assistant-Integration mit Dashboard-Karte für die öffentlichen Messpunkte von [ortsnetz-auslastung.de](https://www.ortsnetz-auslastung.de/). Die Integration lädt die Daten serverseitig, speichert sie bedarfsgesteuert zwischen und liefert gleich die passende Karte mit. Backend und Card sind hier in **einem** HACS-Repository zusammengeführt.
 
@@ -133,36 +133,6 @@ Ortsnetz Map Card
 - [OpenFreeMap](https://openfreemap.org/)-Vektorkarten (Stile „Liberty“ und „Dark“) auf Basis von OpenStreetMap-Daten, geladen von `tiles.openfreemap.org`
 
 Der Browser muss `tiles.openfreemap.org` erreichen können; ein externes CDN für MapLibre ist nicht mehr nötig. Die Messdaten selbst laufen ausschließlich über Home Assistant. Ist der Kartenhintergrund nicht erreichbar (z. B. durch einen Werbeblocker wie Pi-hole oder ohne Internet), zeigt die Karte Messpunkte und Tortendiagramme (mit Anzahl) auf einem neutralen Hintergrund und nennt das Problem in der Statuszeile. Lädt wieder eine Kachel, verschwindet der Hinweis; der nächste Wechsel zwischen hellem und dunklem Theme versucht wieder den echten Kartenstil.
-
-## Entwicklung
-
-```bash
-npm ci
-npm test                                        # Card-Tests (vitest, jsdom)
-npx playwright install --with-deps webkit chromium
-npm run test:browser                            # Karte im echten Browser (Chromium und WebKit)
-python -m pytest -q                             # Backend (requirements_test.txt)
-```
-
-Die Browser-Tests laufen ohne Netz: MapLibre aus dem Repository, ein Minimalstil statt OpenFreeMap und 700 erzeugte Messpunkte. Sie prüfen in Chromium und WebKit (Safari-Engine):
-
-| Datei | Inhalt |
-|---|---|
-| `clusters.spec.js` | Nach jedem Zoomen und Schwenken ist jeder angezeigte Status-Punkt im Blickfeld genau einmal sichtbar (als Einzelpunkt oder in einem Cluster); Zähler je Status, Legendenfilter, Theme-Wechsel, Diagnosezeile, Klick und Tipp mit Toleranz |
-| `pies.spec.js` | Torten sitzen auf ihren Clustern (auch während einer Bewegung), stimmen mit den Zählern überein, reagieren auf Klick und Tastatur und kommen nach dem Theme-Wechsel wieder |
-| `popup.spec.js` | Popup bleibt vollständig in der Karte, auch nach dem Nachladen des Verlaufs; hat man die Karte selbst bewegt, verschiebt die Card sie nicht mehr |
-| `basemap.spec.js` | Stil oder Kacheln nicht erreichbar: Daten trotzdem sichtbar, Hinweis in der Statuszeile, Rückkehr zum echten Stil |
-| `touch.spec.js` | Kooperative Gesten, kein Drehen und Kippen, Antippen von Clustern und Punkten |
-| `config.spec.js` | Konfigurationsänderung ohne Neuaufbau, Quellenangabe sichtbar und nicht von Legende oder Status verdeckt |
-
-Die Tests prüfen die Browser-Engines, nicht ein echtes iPad, die Companion-App oder die echten OpenFreeMap-Stile; das bleibt Handarbeit vor einem Release.
-
-### Release
-
-`main` ist gegen direkte Pushes geschützt. Deshalb:
-
-1. Version per Pull Request setzen: `VERSION`, `version` in `manifest.json` und die erste Zeile der Card (`// Ortsnetz Map Card vX.Y.Z`) gleich; dazu `CHANGELOG.md`, die Versionszeile in dieser README und `RELEASE_NOTES_X.Y.Z.md`.
-2. Nach dem Merge **Actions → Release veröffentlichen → Run workflow** auf `main` mit der Version ohne `v` starten. Der Workflow testet, prüft die Versionen, setzt den Tag `vX.Y.Z` und legt das GitHub-Release mit den Release Notes an. Versionen mit Bindestrich (z. B. `2.1.0-beta.1`) werden als Vorabversion veröffentlicht.
 
 ## Voraussetzungen
 
