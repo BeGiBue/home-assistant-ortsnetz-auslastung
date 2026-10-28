@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.1 — 2026-10-28
+
+- Dokumentation und Workflows aufgeräumt; Release-Workflow zusammengeführt.
+- Toten Code in der Card entfernt (ungenutzte Hilfsfunktion, doppelte Grenz- und Standardwerte durch vorhandene Konstanten ersetzt).
+- Versionen in Manifest, `VERSION`, README und Card-Kopfzeile auf 3.0.1 angehoben.
+
+Keine Änderungen an der Funktionsweise der Karte oder Integration.
+
 ## 3.0.0 — 2026-10-24
 
 - Aufnahme in den offiziellen HACS-Katalog; Installation über die HACS-Suche ist der Standardweg.

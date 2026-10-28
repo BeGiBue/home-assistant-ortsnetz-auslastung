@@ -1,4 +1,4 @@
-// Ortsnetz Map Card v3.0.0
+// Ortsnetz Map Card v3.0.1
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
 const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
@@ -95,8 +95,8 @@ const CONFIG_RANGES = { zoom: [1, 19], refresh_interval: [60, 3600], latitude: [
 // Vollständige, bereinigte Konfiguration der Card (Standardwerte ergänzt).
 function normalizeConfig(config) {
   const merged = { ...DEFAULT_CONFIG, ...config };
-  merged.zoom = clamp(merged.zoom, 1, 19, 10);
-  merged.refresh_interval = clamp(merged.refresh_interval, 60, 3600, 300);
+  merged.zoom = clamp(merged.zoom, ...CONFIG_RANGES.zoom, DEFAULT_CONFIG.zoom);
+  merged.refresh_interval = clamp(merged.refresh_interval, ...CONFIG_RANGES.refresh_interval, DEFAULT_CONFIG.refresh_interval);
   merged.phase = ["auto", "L1", "L2", "L3"].includes(String(merged.phase)) ? String(merged.phase) : "auto";
   merged.show_status = merged.show_status !== false;
   merged.show_legend = merged.show_legend !== false;
@@ -590,7 +590,7 @@ class OrtsnetzMapCard extends HTMLElement {
   // Bedarfsgesteuert: nur abrufen, solange der Tab sichtbar ist.
   _startRefreshTimer() {
     if (this._refreshTimer) clearInterval(this._refreshTimer);
-    const refreshSeconds = Math.max(60, Number(this._config.refresh_interval) || 300);
+    const refreshSeconds = Math.max(CONFIG_RANGES.refresh_interval[0], Number(this._config.refresh_interval) || DEFAULT_CONFIG.refresh_interval);
     this._refreshTimer = setInterval(() => {
       if (!document.hidden) this._loadMeasurements();
     }, refreshSeconds * 1000);
@@ -689,7 +689,7 @@ class OrtsnetzMapCard extends HTMLElement {
 
   _handleVisibility() {
     if (document.hidden || !this._map) return;
-    const refreshMs = Math.max(60, Number(this._config.refresh_interval) || 300) * 1000;
+    const refreshMs = Math.max(CONFIG_RANGES.refresh_interval[0], Number(this._config.refresh_interval) || DEFAULT_CONFIG.refresh_interval) * 1000;
     if (Date.now() - this._lastLoad >= refreshMs) this._loadMeasurements();
   }
 
@@ -1481,11 +1481,6 @@ class OrtsnetzMapCard extends HTMLElement {
     const zoom = stats.zoom.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     this._debugElement.textContent =
       `Zoom ${zoom} · ${stats.set} Punkte gesetzt · ${stats.clusters} Cluster (${stats.clusterPoints} Punkte) · ${stats.singles} Einzel sichtbar`;
-  }
-
-  _fmtV(value) {
-    const voltage = toVoltage(value);
-    return voltage !== null ? `${voltage.toFixed(1)} V` : "–";
   }
 
   _formatDate(value) {
