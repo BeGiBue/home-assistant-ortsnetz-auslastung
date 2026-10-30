@@ -1,4 +1,4 @@
-// Ortsnetz Map Card v3.0.1
+// Ortsnetz Map Card v3.0.2
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
 const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
@@ -1678,8 +1678,42 @@ class OrtsnetzMapCardEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get("ortsnetz-map-card-editor")) customElements.define("ortsnetz-map-card-editor", OrtsnetzMapCardEditor);
-if (!customElements.get("ortsnetz-map-card")) customElements.define("ortsnetz-map-card", OrtsnetzMapCard);
+// Seit Home Assistant 2026.10 tauscht das Frontend window.customElements gegen ein
+// Polyfill mit eigener Registry aus. Läuft dieses Modul vor dem Austausch, landet die
+// Registrierung in der alten Registry und das Dashboard meldet "Custom element doesn't
+// exist". Deshalb wird idempotent in der jeweils aktuellen Registry registriert und
+// erneut geprüft, sobald das Frontend bereit ist (siehe Issue #22).
+const CARD_ELEMENTS = [
+  ["ortsnetz-map-card-editor", OrtsnetzMapCardEditor],
+  ["ortsnetz-map-card", OrtsnetzMapCard],
+];
+
+function registerCardElements() {
+  for (const [name, constructor] of CARD_ELEMENTS) {
+    try {
+      if (!window.customElements.get(name)) window.customElements.define(name, constructor);
+    } catch (error) {
+      // Ein anderer Lader war schneller oder die Registry lehnt die Klasse ab: nichts zu tun.
+    }
+  }
+}
+
+registerCardElements();
+
+// whenDefined gehört zur Registry von jetzt. Wird sie später ersetzt, greifen die
+// weiteren Auslöser (load, kurzes Abfragen), die immer die aktuelle Registry prüfen.
+if (typeof window.customElements.whenDefined === "function") {
+  window.customElements.whenDefined("home-assistant").then(registerCardElements, () => {});
+}
+window.addEventListener("load", registerCardElements, { once: true });
+{
+  let attempts = 0;
+  const timer = setInterval(() => {
+    registerCardElements();
+    attempts += 1;
+    if (attempts >= 40) clearInterval(timer); // 40 x 500 ms = 20 s
+  }, 500);
+}
 
 window.customCards = window.customCards || [];
 if (!window.customCards.some((card) => card.type === "ortsnetz-map-card")) {
