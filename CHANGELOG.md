@@ -1,9 +1,9 @@
 # Changelog
 
-## Unveröffentlicht
+## 3.0.2 — 2026-10-30
 
 - **Fix: „Custom element doesn't exist“ / Karte nicht verfügbar (Issue #22).** Seit Home Assistant 2026.10 ersetzt das Frontend `window.customElements` durch ein Polyfill mit eigener Registry. Lief die Card davor, blieb sie in der alten Registry und das Dashboard fand sie nicht (u. a. in Firefox). Die Card meldet sich jetzt idempotent in der jeweils aktuellen Registry an und prüft das erneut, sobald `home-assistant` definiert ist, beim `load`-Ereignis und kurz danach. Bereits registrierte Einträge bleiben unberührt.
-- Regressionstest `tests_js/registry.test.js` für den Austausch der Registry.
+- Regressionstests für den Austausch der Registry: `tests_js/registry.test.js` (vitest) und `tests_browser/registry.spec.js` (Playwright, zusätzlich in Firefox; CI installiert dafür Firefox).
 
 ## 3.0.1 — 2026-10-28
 

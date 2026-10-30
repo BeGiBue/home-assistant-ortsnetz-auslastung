@@ -43,7 +43,7 @@ jobs:
       - run: npm test
 
   browser:
-    name: Card im Browser (Playwright, Chromium und WebKit)
+    name: Card im Browser (Playwright, Chromium, WebKit und Firefox)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,5 +51,5 @@ jobs:
         with:
           node-version: "24"
       - run: npm ci
-      - run: npx playwright install --with-deps webkit chromium
+      - run: npx playwright install --with-deps webkit chromium firefox
       - run: npx playwright test
