@@ -1,4 +1,4 @@
-// Ortsnetz Map Card v3.0.2
+// Ortsnetz Map Card v3.0.3
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
 const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
@@ -1678,42 +1678,42 @@ class OrtsnetzMapCardEditor extends HTMLElement {
   }
 }
 
-// Seit Home Assistant 2026.10 tauscht das Frontend window.customElements gegen ein
-// Polyfill mit eigener Registry aus. Läuft dieses Modul vor dem Austausch, landet die
-// Registrierung in der alten Registry und das Dashboard meldet "Custom element doesn't
-// exist". Deshalb wird idempotent in der jeweils aktuellen Registry registriert und
-// erneut geprüft, sobald das Frontend bereit ist (siehe Issue #22).
-const CARD_ELEMENTS = [
+// Registry-sicher registrieren (Issue #22). Lädt eine andere Karte oder ein Add-on den
+// Polyfill @webcomponents/scoped-custom-element-registry, ersetzt er window.customElements
+// durch eine neue, leere Registry. Home Assistant sucht Karten dort und meldet sonst
+// "Custom element doesn't exist". Das passiert auch nach dem Laden dieser Datei, etwa wenn
+// eine weitere Ressource erst später kommt. Darum wird idempotent in der jeweils aktuellen
+// Registry angemeldet: sofort, zügig im Start (500 ms), danach alle 10 s und bei
+// load, location-changed und Sichtbarkeitswechsel. Ein Durchlauf prüft nur zwei Einträge.
+(function keepRegistered(definitions) {
+  const ensure = () => {
+    for (const [name, constructor] of definitions) {
+      try {
+        if (!customElements.get(name)) customElements.define(name, constructor);
+      } catch (error) {
+        // Name schon vergeben oder Klasse abgelehnt: ein anderer Lader war schneller.
+      }
+    }
+  };
+  ensure();
+  let rounds = 0;
+  const later = (delay) => {
+    const timer = setTimeout(() => {
+      ensure();
+      later(rounds++ < 40 ? 500 : 10000);
+    }, delay);
+    if (timer && timer.unref) timer.unref(); // hält in Node-Tests den Prozess nicht offen
+  };
+  later(500);
+  if (window.addEventListener) {
+    window.addEventListener("load", ensure, { once: true });
+    window.addEventListener("location-changed", ensure);
+  }
+  if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("visibilitychange", ensure);
+})([
   ["ortsnetz-map-card-editor", OrtsnetzMapCardEditor],
   ["ortsnetz-map-card", OrtsnetzMapCard],
-];
-
-function registerCardElements() {
-  for (const [name, constructor] of CARD_ELEMENTS) {
-    try {
-      if (!window.customElements.get(name)) window.customElements.define(name, constructor);
-    } catch (error) {
-      // Ein anderer Lader war schneller oder die Registry lehnt die Klasse ab: nichts zu tun.
-    }
-  }
-}
-
-registerCardElements();
-
-// whenDefined gehört zur Registry von jetzt. Wird sie später ersetzt, greifen die
-// weiteren Auslöser (load, kurzes Abfragen), die immer die aktuelle Registry prüfen.
-if (typeof window.customElements.whenDefined === "function") {
-  window.customElements.whenDefined("home-assistant").then(registerCardElements, () => {});
-}
-window.addEventListener("load", registerCardElements, { once: true });
-{
-  let attempts = 0;
-  const timer = setInterval(() => {
-    registerCardElements();
-    attempts += 1;
-    if (attempts >= 40) clearInterval(timer); // 40 x 500 ms = 20 s
-  }, 500);
-}
+]);
 
 window.customCards = window.customCards || [];
 if (!window.customCards.some((card) => card.type === "ortsnetz-map-card")) {

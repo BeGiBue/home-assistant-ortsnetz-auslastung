@@ -1,5 +1,7 @@
-// Regression für Issue #22: Home Assistant 2026.10 ersetzt window.customElements durch ein
-// Polyfill mit eigener Registry. Die Card muss sich danach in der neuen Registry anmelden.
+// Regression für Issue #22: Eine andere Karte oder ein Add-on lädt den Polyfill
+// @webcomponents/scoped-custom-element-registry und ersetzt window.customElements durch eine
+// neue Registry. Die Card muss sich danach dort anmelden, auch lange nach dem Start.
+// (Der Ablauf mit dem echten Polyfill steht in registry-polyfill.test.js.)
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const CARD = "../custom_components/ortsnetz_map/www/ortsnetz-map-card.js";
@@ -7,19 +9,11 @@ const NAMES = ["ortsnetz-map-card", "ortsnetz-map-card-editor"];
 
 function fakeRegistry() {
   const defined = new Map();
-  const waiting = new Map();
   return {
     defined,
     get: (name) => defined.get(name),
     define(name, constructor) {
       defined.set(name, constructor);
-      (waiting.get(name) || []).forEach((resolve) => resolve(constructor));
-    },
-    whenDefined(name) {
-      if (defined.has(name)) return Promise.resolve(defined.get(name));
-      return new Promise((resolve) => {
-        waiting.set(name, [...(waiting.get(name) || []), resolve]);
-      });
     },
   };
 }
@@ -29,6 +23,8 @@ const original = Object.getOwnPropertyDescriptor(window, "customElements");
 function useRegistry(registry) {
   Object.defineProperty(window, "customElements", { value: registry, configurable: true, writable: true });
 }
+
+const hasAll = (registry) => NAMES.every((name) => registry.defined.has(name));
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -47,48 +43,93 @@ describe("Registrierung bei ausgetauschter customElements-Registry", () => {
     const registry = fakeRegistry();
     useRegistry(registry);
     await import(CARD);
-    NAMES.forEach((name) => expect(registry.defined.has(name)).toBe(true));
+    expect(hasAll(registry)).toBe(true);
   });
 
-  it("meldet die Card nachträglich in der neuen Registry an, wenn das Frontend sie austauscht", async () => {
+  it("meldet die Card in der neuen Registry an, wenn sie kurz nach dem Start ausgetauscht wird", async () => {
     const oldRegistry = fakeRegistry();
     useRegistry(oldRegistry);
     await import(CARD);
-    NAMES.forEach((name) => expect(oldRegistry.defined.has(name)).toBe(true));
+    expect(hasAll(oldRegistry)).toBe(true);
 
-    // Das Frontend setzt sein Polyfill ein; die Card steht dort noch nicht.
     const newRegistry = fakeRegistry();
     useRegistry(newRegistry);
     expect(newRegistry.defined.size).toBe(0);
 
     await vi.advanceTimersByTimeAsync(600);
-    NAMES.forEach((name) => expect(newRegistry.defined.has(name)).toBe(true));
+    expect(hasAll(newRegistry)).toBe(true);
     // Dieselben Klassen wie in der alten Registry, keine zweite Variante.
     NAMES.forEach((name) => expect(newRegistry.defined.get(name)).toBe(oldRegistry.defined.get(name)));
   });
 
-  it("meldet nach whenDefined('home-assistant') an, ohne auf den Timer zu warten", async () => {
+  it("repariert auch einen späten Austausch, lange nach dem Start (höchstens 10 s)", async () => {
     const registry = fakeRegistry();
     useRegistry(registry);
     await import(CARD);
+    await vi.advanceTimersByTimeAsync(10 * 60 * 1000); // zehn Minuten Dauerbetrieb
 
-    registry.defined.clear(); // Registry wurde zurückgesetzt, die Card fehlt
-    registry.define("home-assistant", class {});
-    await Promise.resolve();
-    await Promise.resolve();
-    NAMES.forEach((name) => expect(registry.defined.has(name)).toBe(true));
+    const late = fakeRegistry();
+    useRegistry(late);
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(hasAll(late)).toBe(true);
   });
 
-  it("überschreibt vorhandene Einträge nicht und wirft nicht bei mehrfachem Aufruf", async () => {
+  it("repariert jeden weiteren Austausch erneut", async () => {
+    useRegistry(fakeRegistry());
+    await import(CARD);
+    for (let round = 0; round < 3; round++) {
+      const next = fakeRegistry();
+      useRegistry(next);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(hasAll(next)).toBe(true);
+    }
+  });
+
+  it("meldet sofort an, wenn Home Assistant die Position wechselt (location-changed)", async () => {
+    useRegistry(fakeRegistry());
+    await import(CARD);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    const late = fakeRegistry();
+    useRegistry(late);
+    window.dispatchEvent(new Event("location-changed"));
+    expect(hasAll(late)).toBe(true);
+  });
+
+  it("meldet beim Sichtbarkeitswechsel sofort an", async () => {
+    useRegistry(fakeRegistry());
+    await import(CARD);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    const late = fakeRegistry();
+    useRegistry(late);
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(hasAll(late)).toBe(true);
+  });
+
+  it("überschreibt vorhandene Einträge nicht und wirft nicht bei jedem Durchlauf", async () => {
     const registry = fakeRegistry();
     useRegistry(registry);
     await import(CARD);
     const define = vi.spyOn(registry, "define");
     const before = new Map(registry.defined);
 
-    await vi.advanceTimersByTimeAsync(30000);
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
     expect(define).not.toHaveBeenCalled();
     NAMES.forEach((name) => expect(registry.defined.get(name)).toBe(before.get(name)));
+  });
+
+  it("lässt einen fremden Eintrag in der neuen Registry unangetastet", async () => {
+    useRegistry(fakeRegistry());
+    await import(CARD);
+
+    const late = fakeRegistry();
+    const foreign = class {};
+    late.define("ortsnetz-map-card", foreign);
+    useRegistry(late);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(late.defined.get("ortsnetz-map-card")).toBe(foreign);
+    expect(late.defined.has("ortsnetz-map-card-editor")).toBe(true);
   });
 
   it("verträgt eine Registry, die define ablehnt", async () => {
@@ -96,6 +137,18 @@ describe("Registrierung bei ausgetauschter customElements-Registry", () => {
     registry.define = () => { throw new Error("already used"); };
     useRegistry(registry);
     await expect(import(CARD)).resolves.toBeDefined();
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(30_000);
+  });
+
+  it("belastet nicht: im Dauerbetrieb genau ein Durchlauf alle 10 s", async () => {
+    const registry = fakeRegistry();
+    useRegistry(registry);
+    await import(CARD);
+    await vi.advanceTimersByTimeAsync(60_000); // Start (500 ms) ist vorbei
+    const get = vi.spyOn(registry, "get");
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    // 6 Durchläufe in 60 s, je zwei Namen
+    expect(get).toHaveBeenCalledTimes(12);
   });
 });

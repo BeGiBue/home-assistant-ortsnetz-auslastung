@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.3 — 2026-10-30
+
+- **Fix, dauerhaft: Card bleibt auch nach spätem Austausch der Registry erhalten (Folge von #22).** Lädt eine andere Karte oder ein Add-on den Polyfill `@webcomponents/scoped-custom-element-registry`, ersetzt er `window.customElements` durch eine neue, leere Registry, und Home Assistant meldet „Custom element doesn't exist“. Das kann auch lange nach dem Start passieren, etwa wenn eine weitere Ressource erst später geladen wird. 3.0.2 prüfte nur die ersten 20 Sekunden. Jetzt meldet sich die Card in der jeweils aktuellen Registry an: sofort, im Start alle 500 ms, danach alle 10 s sowie bei `load`, `location-changed` und Sichtbarkeitswechsel. Ein Durchlauf prüft nur zwei Einträge (rund 0,2 µs). Fremde Einträge bleiben unberührt.
+- Tests mit dem echten Polyfill: vitest (jsdom) und Playwright in Chromium, WebKit und Firefox, einschließlich eines zweiten, späten Ladens des Polyfills. Der Polyfill ist dafür eine Entwicklungsabhängigkeit und wird nicht ausgeliefert.
+
+Keine Änderungen an Konfiguration oder Funktionsweise der Karte.
+
 ## 3.0.2 — 2026-10-30
 
 - **Fix: „Custom element doesn't exist“ / Karte nicht verfügbar (Issue #22).** Seit Home Assistant 2026.10 ersetzt das Frontend `window.customElements` durch ein Polyfill mit eigener Registry. Lief die Card davor, blieb sie in der alten Registry und das Dashboard fand sie nicht (u. a. in Firefox). Die Card meldet sich jetzt idempotent in der jeweils aktuellen Registry an und prüft das erneut, sobald `home-assistant` definiert ist, beim `load`-Ereignis und kurz danach. Bereits registrierte Einträge bleiben unberührt.
