@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.4 — 2026-10-31
+
+- Brand-Bilder für Home Assistant und HACS: `icon.png` jetzt 256×256 px, `icon@2x.png` (512×512 px) sowie `logo.png` und `logo@2x.png` ergänzt, damit Icon und Logo in der HACS-Liste und in Home Assistant erscheinen.
+- `documentation` und `issue_tracker` in `manifest.json` zeigen auf das richtige Repository (`home-assistant-ortsnetz-auslastung`).
+
+Keine Änderungen an Konfiguration oder Funktionsweise.
+
 ## 3.0.3 — 2026-10-30
 
 - **Fix, dauerhaft: Card bleibt auch nach spätem Austausch der Registry erhalten (Folge von #22).** Lädt eine andere Karte oder ein Add-on den Polyfill `@webcomponents/scoped-custom-element-registry`, ersetzt er `window.customElements` durch eine neue, leere Registry, und Home Assistant meldet „Custom element doesn't exist“. Das kann auch lange nach dem Start passieren, etwa wenn eine weitere Ressource erst später geladen wird. 3.0.2 prüfte nur die ersten 20 Sekunden. Jetzt meldet sich die Card in der jeweils aktuellen Registry an: sofort, im Start alle 500 ms, danach alle 10 s sowie bei `load`, `location-changed` und Sichtbarkeitswechsel. Ein Durchlauf prüft nur zwei Einträge (rund 0,2 µs). Fremde Einträge bleiben unberührt.
