@@ -9,10 +9,10 @@
     "@BeGiBue"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/BeGiBue/ha-ortsnetz-auslastung",
+  "documentation": "https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/BeGiBue/ha-ortsnetz-auslastung/issues",
+  "issue_tracker": "https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung/issues",
   "requirements": [],
   "single_config_entry": true,
   "version": "3.0.3"
