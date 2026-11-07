@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.0 — 2026-11-07
+
+- The card and its editor now appear in English by default and in German when Home Assistant is set to German; times and dates follow the selected language. The integration was already bilingual. / Karte und Editor erscheinen jetzt standardmäßig auf Englisch und auf Deutsch, wenn Home Assistant auf Deutsch eingestellt ist; Uhrzeiten und Datum folgen der eingestellten Sprache. Die Integration war bereits zweisprachig.
+- README shortened and available in English and German. / README gekürzt und auf Englisch und Deutsch verfügbar.
+
 ## 3.0.4 — 2026-10-31
 
 - Brand-Bilder für Home Assistant und HACS: `icon.png` jetzt 256×256 px, `icon@2x.png` (512×512 px) sowie `logo.png` und `logo@2x.png` ergänzt, damit Icon und Logo in der HACS-Liste und in Home Assistant erscheinen.

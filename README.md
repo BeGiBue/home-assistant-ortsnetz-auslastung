@@ -4,146 +4,56 @@
 
 # Ortsnetz Map
 
-**Version 3.0.4**
+**English** | [Deutsch](https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung#deutsch)
 
-Home-Assistant-Integration mit Dashboard-Karte für die öffentlichen Messpunkte von [ortsnetz-auslastung.de](https://www.ortsnetz-auslastung.de/). Die Integration lädt die Daten serverseitig, speichert sie bedarfsgesteuert zwischen und liefert gleich die passende Karte mit. Backend und Card sind hier in **einem** HACS-Repository zusammengeführt.
+## English
 
-Der Browser ruft die externe API nicht direkt auf, CORS ist kein Problem. Die Messdaten laufen ausschließlich über Home Assistant.
+Home Assistant integration with a dashboard card for the public measuring points of [ortsnetz-auslastung.de](https://www.ortsnetz-auslastung.de/) (local low-voltage grid in Germany). The integration loads the data on the server, caches it on demand and ships the matching card. The browser never calls the external API; all data runs through Home Assistant.
 
-## Vorschau
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-ortsnetz-auslastung/main/docs/assets/ortsnetz-normal-800-light.png" width="800" alt="Ortsnetz Map: Germany overview with measuring points, clusters and open legend, 800 px, light theme">
 
-**Normalbetrieb – breit (800 px)**
+### Features
 
-<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-ortsnetz-auslastung/main/docs/assets/ortsnetz-normal-800-light.png" width="800" alt="Ortsnetz Map: Deutschland-Übersicht mit Messpunkten, Clustern und geöffneter Legende, 800 px Kartenbreite, helles Theme">
+- Nearby sites are clustered up to zoom 11; from zoom 12 all single points appear. Each cluster is a pie chart of the status shares; tap or press Enter to zoom in.
+- Marker color by the worst value of all measured phases; marker size by expected PV yield (kWh/kWp/day).
+- Collapsible legend with the readings of the last 24 hours per status; checkboxes hide single statuses.
+- Popup with L1/L2/L3, grid frequency, PV forecast and two 24-hour charts (voltage and frequency); outdated readings are shown transparent.
+- Cooperative gestures (can be turned off), dark mode from the active theme, OpenFreeMap vector map without API key, visual editor.
+- On-demand fetching without background polling, shared 5-minute cache; the card is loaded automatically, no dashboard resource needed.
 
-## Funktionen
+The card is shown in German when Home Assistant is set to German, and in English otherwise.
 
-**Karte**
+### Requirements
 
-- Standorte in der Nähe werden bis Zoom 11 zu Clustern zusammengefasst (MapLibre-Clustering), ab Zoom 12 erscheinen alle Einzelpunkte. Ein Cluster ist ein Tortendiagramm mit den Anteilen der Status und der Anzahl seiner Standorte; ein Klick, Antippen oder Enter/Leertaste (Cluster per Tab ausgewählt) zoomt so weit hinein, dass er sich aufteilt. Die Torten sind für Screenreader beschriftet, z. B. „Cluster mit 12 Messpunkten: 5 unter 207 V, 7 218 – 242 V“.
-- Punkte und Cluster lassen sich auch auf Touch-Geräten treffen: Tippen bis 10 px daneben genügt.
-- Kooperative Gesten (abschaltbar): Ein Finger scrollt die Seite, zwei Finger bewegen die Karte, am Computer zoomt Strg (Mac: ⌘) + Mausrad. Die Karte lässt sich nicht drehen oder kippen.
-- Schlägt ein Abruf fehl, versucht die Card es nach 15, 30 und 60 Sekunden erneut und zeigt bis dahin den letzten Stand.
-- Markerfarbe nach dem schlechtesten Wert aller gemessenen Phasen (Unterspannung hat bei gleicher Schwere Vorrang). Nicht gemessene Phasen werden ignoriert. Schwellwerte und Farben kommen aus der API.
-- Markergröße nach dem erwarteten PV-Ertrag in kWh/kWp/Tag (0–10), sofern ein Forecast vorliegt.
+- Home Assistant 2026.6.0 or newer.
+- A current browser with WebGL 2 and JavaScript module workers, also on kiosk devices and in the Companion app WebView.
+- Internet access from the Home Assistant server to `www.ortsnetz-auslastung.de`.
+
+Independent community project, not part of ortsnetz-auslastung.de, OpenFreeMap / OpenStreetMap or Home Assistant. License: [AGPL-3.0-only](https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung/blob/main/LICENSE).
+
+## Deutsch
+
+[English](https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung#english) | **Deutsch**
+
+Home-Assistant-Integration mit Dashboard-Karte für die öffentlichen Messpunkte von [ortsnetz-auslastung.de](https://www.ortsnetz-auslastung.de/). Die Integration lädt die Daten serverseitig, speichert sie bedarfsgesteuert zwischen und liefert die passende Karte mit. Der Browser ruft die externe API nicht direkt auf; alle Daten laufen über Home Assistant.
+
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-ortsnetz-auslastung/main/docs/assets/ortsnetz-normal-800-light.png" width="800" alt="Ortsnetz Map: Deutschland-Übersicht mit Messpunkten, Clustern und geöffneter Legende, 800 px, helles Theme">
+
+### Funktionen
+
+- Standorte in der Nähe werden bis Zoom 11 zu Clustern zusammengefasst, ab Zoom 12 erscheinen alle Einzelpunkte. Jeder Cluster ist ein Tortendiagramm der Status-Anteile; Antippen oder Enter zoomt hinein.
+- Markerfarbe nach dem schlechtesten Wert aller gemessenen Phasen, Markergröße nach dem erwarteten PV-Ertrag (kWh/kWp/Tag).
 - Einklappbare Legende mit den Messungen der letzten 24 Stunden je Status; Häkchen blenden einzelne Status aus.
-- Popup mit L1/L2/L3, Netzfrequenz, PV-Forecast und Zeitstempel sowie zwei 24-Stunden-Verläufen (Spannung und Frequenz). Gelbe und rote Hintergrundbereiche markieren Warnungen und kritische Werte. Das Popup passt sich der Kartengröße an; die Karte wird bei Bedarf so verschoben, dass es vollständig sichtbar ist, längerer Inhalt scrollt.
-- Veraltete Messungen (älter als 20 Minuten) werden transparent dargestellt.
-- Dark Mode nach dem aktiven Home-Assistant-Theme, OpenFreeMap-Vektorkarte ohne API-Key, grafischer Karteneditor, Sections-Layout mit Full Width.
+- Popup mit L1/L2/L3, Netzfrequenz, PV-Forecast und zwei 24-Stunden-Verläufen (Spannung und Frequenz); veraltete Messungen erscheinen transparent.
+- Kooperative Gesten (abschaltbar), Dark Mode nach dem aktiven Theme, OpenFreeMap-Vektorkarte ohne API-Key, grafischer Editor.
+- Bedarfsgesteuerter Abruf ohne Hintergrund-Polling, gemeinsamer 5-Minuten-Cache; die Karte wird automatisch geladen, keine Dashboard-Ressource nötig.
 
-**Integration**
+Die Karte erscheint auf Deutsch, wenn Home Assistant auf Deutsch eingestellt ist, sonst auf Englisch.
 
-- Bedarfsgesteuerter Abruf: kein Abruf beim Start und kein Hintergrund-Polling. Daten werden nur geladen, wenn eine Karte sie anfordert.
-- Cache von standardmäßig 5 Minuten; mehrere Karten und Browser teilen sich einen Abruf. Nach einem Fehler gilt standardmäßig 60 Sekunden Pause, bis dahin werden die zuletzt geladenen Daten ausgeliefert.
-- Die Karte wird von der Integration selbst bereitgestellt und automatisch im Frontend geladen. Eine Dashboard-Ressource ist nicht nötig.
-- Cache-Dauer und Pause nach Fehlern sind unter **Konfigurieren** einstellbar.
+### Voraussetzungen
 
-## Installation über HACS
+- Home Assistant 2026.6.0 oder neuer.
+- Aktueller Browser mit WebGL 2 und JavaScript-Modul-Workern, auch auf Kiosk-Geräten und in der WebView der Companion-App.
+- Internetzugriff des Home-Assistant-Servers auf `www.ortsnetz-auslastung.de`.
 
-[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-ortsnetz-auslastung&category=integration)
-
-1. HACS öffnen und nach **Ortsnetz Map** suchen.
-2. **Ortsnetz Map** auswählen und installieren (für Vorabversionen **⋮ → Beta-Versionen anzeigen**).
-3. Home Assistant neu starten.
-4. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ortsnetz Map**.
-5. Browser bzw. App vollständig neu laden. Die Karte erscheint als **Ortsnetz Map** im Karten-Picker.
-
-Falls **Ortsnetz Map** noch nicht im HACS-Katalog angezeigt wird, kann das Repository alternativ unter **HACS → Benutzerdefinierte Repositories** mit der URL `https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung` und dem Typ **Integration** hinzugefügt werden.
-
-## Wechsel vom benutzerdefinierten Repository zum HACS-Katalog
-
-Das Projekt ist in den offiziellen HACS-Katalog aufgenommen worden. Für eine bereits installierte Version **dieses Repositories**:
-
-1. In HACS nach **Ortsnetz Map** suchen und prüfen, ob das Projekt im offiziellen Katalog verfügbar ist. Falls es noch fehlt, die HACS-Informationen aktualisieren und später erneut prüfen.
-2. Unter **HACS → Benutzerdefinierte Repositories** nur den Eintrag für `BeGiBue/home-assistant-ortsnetz-auslastung` entfernen.
-3. **Die bestehende Installation nicht deinstallieren.** Den Eintrag unter Geräte & Dienste, die Dashboard-Karten und deren Konfiguration behalten.
-4. HACS aktualisieren bzw. neu laden und kontrollieren, dass **Ortsnetz Map** weiterhin als installiert erscheint und Aktualisierungen angeboten werden.
-5. Ein angebotenes Update regulär installieren, Home Assistant neu starten und das Frontend vollständig neu laden. Anschließend die vorhandenen Karten prüfen.
-
-Die Domain `ortsnetz_map`, WebSocket-Befehle und `type: custom:ortsnetz-map-card` bleiben erhalten. Die Major-Version 3.0.0 kennzeichnet die Aufnahme in den offiziellen HACS-Katalog; eine Major-Version bedeutet nicht automatisch Breaking Changes. Für diesen Wechsel ist keine Neukonfiguration vorgesehen. Das enthaltene Sicherheitsupdate von MapLibre setzt einen aktuellen Browser mit WebGL 2 und Unterstützung für JavaScript-Modul-Worker voraus; ältere Kiosk-Browser gegebenenfalls vor dem Update aktualisieren.
-
-Der folgende Abschnitt betrifft dagegen die älteren, getrennten Backend- und Card-Repositories und ist für den reinen Katalogwechsel nicht nötig.
-
-## Umstieg von den bisherigen Repositories
-
-Bisher gab es zwei Repositories: *Home-Assistant-Ortsnetz-Map* (Backend) und *ortsnetz-map-card* (Card). Die Domain `ortsnetz_map` bleibt gleich, die Einrichtung und der WebSocket-Befehl `ortsnetz_map/get_points` ebenfalls.
-
-1. In HACS das alte **Ortsnetz Map Backend** und die alte **Ortsnetz Map Card** entfernen.
-2. Falls die Card von Hand als Dashboard-Ressource eingetragen war, den Eintrag unter **Einstellungen → Dashboards → Ressourcen** löschen.
-3. **Ortsnetz Map** wie oben über die HACS-Suche installieren und Home Assistant neu starten.
-4. Browser bzw. App vollständig neu laden.
-
-Die vorhandene Integration (Eintrag unter Geräte & Dienste) bleibt bestehen. Bestehende Dashboards mit `type: custom:ortsnetz-map-card` funktionieren weiter. Würde die alte Card parallel geladen, gewinnt die zuerst geladene Version; deshalb sollte sie entfernt werden.
-
-## Card hinzufügen
-
-Minimal-Konfiguration:
-
-```yaml
-type: custom:ortsnetz-map-card
-```
-
-| Option | Standard | Bedeutung |
-|---|---|---|
-| `zoom` | 10 | Start-Zoom (1–19) |
-| `phase` | `auto` | `auto` = schlechtester Wert aller Phasen, oder `L1`, `L2`, `L3` |
-| `refresh_interval` | 300 | Aktualisierung in Sekunden (60–3600), nur bei sichtbarem Tab |
-| `show_status` | `true` | Statusanzeige unten links |
-| `show_legend` | `true` | Legende unten rechts |
-| `cooperative_gestures` | `true` | Ein Finger scrollt die Seite, zwei Finger bewegen die Karte, Strg/⌘ + Mausrad zoomt. `false`: Karte reagiert auf einen Finger und das Mausrad ohne Taste |
-| `latitude`, `longitude` | HA-Standort | Eigener Kartenmittelpunkt; ungültige Werte fallen auf den HA-Standort zurück |
-| `debug` | `false` | Diagnosezeile oben links: Zoom, gesetzte Punkte, sichtbare Cluster (mit Summe ihrer Punkte) und Einzelpunkte. Hilft bei Fehlerberichten per Screenshot |
-
-Breite und Höhe werden ausschließlich über den Tab **Layout** von Home Assistant eingestellt.
-
-## Einstellungen der Integration
-
-Unter **Einstellungen → Geräte & Dienste → Ortsnetz Map → Konfigurieren**:
-
-| Einstellung | Bereich | Standard | Wirkung |
-|---|---|---|---|
-| Cache-Dauer | 60–3600 s | 300 s | So lange werden Messpunkte, Zähler der letzten 24 Stunden und Verläufe ohne neuen Abruf ausgeliefert |
-| Pause nach Fehler | 30–600 s | 60 s | So lange wird nach einem fehlgeschlagenen Abruf kein neuer Versuch gestartet |
-
-Nach dem Speichern lädt die Integration automatisch neu.
-
-## Datenfluss
-
-```text
-ortsnetz-auslastung.de
-  /v1/map/points · /v1/map/threshold-stats · /v1/map/sources/<id>/history
-        ↓
-Home Assistant: Ortsnetz Map (Cache, bedarfsgesteuert)
-        ↓
-authentifizierte HA WebSocket API
-        ↓
-Ortsnetz Map Card
-```
-
-## WebSocket API
-
-| Befehl | Wirkung |
-|---|---|
-| `ortsnetz_map/get_points` | Messpunkte; zusätzlich `threshold_stats` (Messungen der letzten 24 Stunden je Status), falls verfügbar. Optional `refresh: true` ruft nur neu ab, wenn der Cache mindestens 60 Sekunden alt ist; gedacht für eigene Clients, die mitgelieferte Card nutzt es nicht. |
-| `ortsnetz_map/get_history` | 24-Stunden-Verlauf eines Standorts (`public_id`). Wird nur beim Öffnen eines Popups abgerufen und je Standort für die eingestellte Cache-Dauer zwischengespeichert. Nur Standorte aus der aktuellen Punktliste; andere IDs erhalten den Fehler `not_found`. |
-
-## Externe Bibliothek / Karte
-
-- [MapLibre GL JS](https://maplibre.org/) 6.4.1 (BSD-3-Clause, Lizenz und Herkunftsnachweis in `custom_components/ortsnetz_map/www/maplibre/`), wird mit der Integration ausgeliefert und von Home Assistant bereitgestellt. Das Update behebt [CVE-2026-85061 / GHSA-jrc7-96c5-q579](https://github.com/maplibre/maplibre-gl-js/security/advisories/GHSA-jrc7-96c5-q579), eine XSS-Lücke bei der Verarbeitung fremder Quellenangaben.
-- [OpenFreeMap](https://openfreemap.org/)-Vektorkarten (Stile „Liberty“ und „Dark“) auf Basis von OpenStreetMap-Daten, geladen von `tiles.openfreemap.org`
-
-Der Browser muss `tiles.openfreemap.org` erreichen können; ein externes CDN für MapLibre ist nicht mehr nötig. Die Messdaten selbst laufen ausschließlich über Home Assistant. Ist der Kartenhintergrund nicht erreichbar (z. B. durch einen Werbeblocker wie Pi-hole oder ohne Internet), zeigt die Karte Messpunkte und Tortendiagramme (mit Anzahl) auf einem neutralen Hintergrund und nennt das Problem in der Statuszeile. Lädt wieder eine Kachel, verschwindet der Hinweis; der nächste Wechsel zwischen hellem und dunklem Theme versucht wieder den echten Kartenstil.
-
-## Voraussetzungen
-
-- Home Assistant 2026.6.0 oder neuer
-- Aktueller Browser mit WebGL 2 und JavaScript-Modul-Workern; dies gilt auch für Kiosk-Geräte und die WebView der Companion-App.
-- Internetzugriff des Home-Assistant-Servers auf `www.ortsnetz-auslastung.de`
-
-## Hinweise
-
-Dieses Projekt ist ein unabhängiges Community-Projekt und nicht Teil von `ortsnetz-auslastung.de`, OpenFreeMap / OpenStreetMap oder Home Assistant.
-
-## Lizenz
-
-GNU Affero General Public License v3.0 only (**AGPL-3.0-only**). Nutzung, Änderungen und Weitergabe sind unter den Bedingungen der AGPL erlaubt; abgeleitete Werke müssen unter derselben Lizenz stehen. Bei modifizierten Versionen, die über ein Netzwerk genutzt werden, muss der entsprechende Quellcode den Nutzern zugänglich gemacht werden. Details stehen in `LICENSE`.
+Unabhängiges Community-Projekt, nicht Teil von ortsnetz-auslastung.de, OpenFreeMap / OpenStreetMap oder Home Assistant. Lizenz: [AGPL-3.0-only](https://github.com/BeGiBue/home-assistant-ortsnetz-auslastung/blob/main/LICENSE).

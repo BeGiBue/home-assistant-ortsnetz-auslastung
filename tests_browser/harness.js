@@ -138,6 +138,7 @@ const HARNESS_HTML = `<!doctype html>
     window.__historyReleased = options.holdHistory ? new Promise((resolve) => { releaseHistory = resolve; }) : Promise.resolve();
     window.__releaseHistory = () => releaseHistory?.();
     card.hass = {
+      language: "de",
       config: { latitude: 51.0, longitude: 10.0 },
       themes: { darkMode: false },
       connection: {

@@ -3,6 +3,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 const CARD = "../custom_components/ortsnetz_map/www/ortsnetz-map-card.js";
 
+// Die bestehenden Tests prüfen die deutschen Texte: Browsersprache Deutsch, solange
+// kein hass gesetzt ist. Englisch wird unten in einem eigenen Block geprüft.
+Object.defineProperty(navigator, "language", { value: "de-DE", configurable: true });
+
 // ---- Nachbildung von MapLibre ------------------------------------------------
 
 const maps = [];
@@ -138,6 +142,7 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 function makeHass(overrides = {}) {
   return {
+    language: "de",
     config: { latitude: 52.5, longitude: 13.4 },
     themes: { darkMode: false },
     connection: { sendMessagePromise: vi.fn(() => new Promise(() => {})) },
@@ -1250,3 +1255,14 @@ describe("Quellenangabe", () => {
   });
 });
 
+describe("Sprache", () => {
+  it("zeigt Englisch, wenn Home Assistant nicht auf Deutsch steht", () => {
+    const card = newCard();
+    card._hass = makeHass({ language: "en" });
+    expect(card._popupHtml({ l1_v: 230, sample_count: 3 })).toContain("Readings: <span");
+    card._hass = makeHass({ language: "fr" });
+    expect(card._popupHtml({ l1_v: 230 })).toContain("Ortsnetz measuring point");
+    card._hass = makeHass({ language: "de-AT" });
+    expect(card._popupHtml({ l1_v: 230 })).toContain("Ortsnetz-Messpunkt");
+  });
+});

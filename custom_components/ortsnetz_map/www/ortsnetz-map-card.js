@@ -9,7 +9,135 @@ const OPENFREEMAP_DARK_STYLE = "https://tiles.openfreemap.org/styles/dark";
 // Lädt der Stil nicht (Pi-hole, offline, App ohne Internet), zeigt die Karte die
 // Punkte auf einem neutralen Hintergrund. Ohne glyphs entfällt der Zähler-Layer.
 const STYLE_TIMEOUT_MS = 10000;
-const BASEMAP_PROBLEM = "Kartenhintergrund nicht erreichbar (tiles.openfreemap.org)";
+// Language: German when Home Assistant uses German, otherwise English.
+const I18N = {
+  "en": {
+    "basemap": "Map background unreachable (tiles.openfreemap.org)",
+    "g_low": "Undervoltage",
+    "g_normal": "Normal",
+    "g_high": "Overvoltage",
+    "below": "below 207 V",
+    "above": "above 253 V",
+    "coop_win": "Ctrl + scroll wheel to zoom the map",
+    "coop_mac": "⌘ + scroll wheel to zoom the map",
+    "coop_mobile": "Use two fingers to move the map",
+    "no_data": "No data from ortsnetz-auslastung.de – try again later",
+    "not_loaded": "Ortsnetz Map integration not set up",
+    "backend": "Backend unreachable – check the integration",
+    "loading": "Loading readings …",
+    "error": "Error",
+    "point_title": "Ortsnetz measuring point",
+    "not_measured": "not measured",
+    "frequency": "Frequency",
+    "pv_unit": "kWh/kWp/day",
+    "readings": "Readings",
+    "stale": "⚠️ Reading may be outdated",
+    "last_reading": "Last reading",
+    "history_loading": "Loading history …",
+    "history_na": "History not available",
+    "no_history": "No history data",
+    "voltage24": "Voltage (24 h)",
+    "no_voltage": "No voltage values",
+    "freq24": "Grid frequency (24 h)",
+    "no_freq": "No frequency values",
+    "sites": "{n} sites, measured every 5 minutes",
+    "last24": "Readings of the last 24 hours:",
+    "current": "Current measuring points:",
+    "marker_size": "Marker size:",
+    "pv_yield": "expected PV yield in kWh/kWp/day",
+    "legend": "Legend",
+    "points": "{n} measuring points",
+    "refresh_failed": "Update failed, showing data from {t}",
+    "cluster": "Cluster with {n} measuring points: {parts}. Tap to zoom in.",
+    "unknown": "unknown",
+    "e_display": "Display",
+    "e_zoom": "Zoom",
+    "e_phase": "Phase for marker color",
+    "e_all_phases": "All phases (worst value)",
+    "e_refresh": "Update interval",
+    "e_show_status": "Show status at bottom left",
+    "e_show_legend": "Show legend at bottom right",
+    "e_coop": "Two fingers to pan (the page scrolls over the map)",
+    "e_coop_hint": "When checked, one finger scrolls the page instead of the map; pan and zoom the map with two fingers, on a computer zoom with Ctrl (Mac: ⌘) + scroll wheel.",
+    "e_size_hint": "Width and height are set only in Home Assistant's “Layout” tab. The map fills the assigned area completely.",
+    "e_center": "Map center",
+    "e_use_ha": "Use Home Assistant location",
+    "e_lat": "Latitude",
+    "e_lon": "Longitude",
+    "e_ha_hint": "When enabled, the map follows the Home Assistant location set under Settings → System → General.",
+    "description": "Shows measuring points from ortsnetz-auslastung.de around the Home Assistant location."
+  },
+  "de": {
+    "basemap": "Kartenhintergrund nicht erreichbar (tiles.openfreemap.org)",
+    "g_low": "Unterspannung",
+    "g_normal": "Normalzustand",
+    "g_high": "Überspannung",
+    "below": "unter 207 V",
+    "above": "über 253 V",
+    "coop_win": "Strg + Mausrad zum Zoomen der Karte",
+    "coop_mac": "⌘ + Mausrad zum Zoomen der Karte",
+    "coop_mobile": "Karte mit zwei Fingern bewegen",
+    "no_data": "Keine Daten von ortsnetz-auslastung.de – später erneut versuchen",
+    "not_loaded": "Integration Ortsnetz Map nicht eingerichtet",
+    "backend": "Backend nicht erreichbar – Integration prüfen",
+    "loading": "Lade Messwerte …",
+    "error": "Fehler",
+    "point_title": "Ortsnetz-Messpunkt",
+    "not_measured": "nicht gemessen",
+    "frequency": "Frequenz",
+    "pv_unit": "kWh/kWp/Tag",
+    "readings": "Messungen",
+    "stale": "⚠️ Messwert möglicherweise veraltet",
+    "last_reading": "Letzte Messung",
+    "history_loading": "Verlauf wird geladen …",
+    "history_na": "Verlauf nicht verfügbar",
+    "no_history": "Keine Verlaufsdaten",
+    "voltage24": "Spannung (24 h)",
+    "no_voltage": "Keine Spannungswerte",
+    "freq24": "Netzfrequenz (24 h)",
+    "no_freq": "Keine Frequenzwerte",
+    "sites": "{n} Standorte, Messung alle 5 Minuten",
+    "last24": "Messungen der letzten 24 Stunden:",
+    "current": "Aktuelle Messpunkte:",
+    "marker_size": "Markergröße:",
+    "pv_yield": "erwarteter PV-Ertrag in kWh/kWp/Tag",
+    "legend": "Legende",
+    "points": "{n} Messpunkte",
+    "refresh_failed": "Aktualisierung fehlgeschlagen, zeige Stand {t}",
+    "cluster": "Cluster mit {n} Messpunkten: {parts}. Antippen zum Hineinzoomen.",
+    "unknown": "unbekannt",
+    "e_display": "Darstellung",
+    "e_zoom": "Zoom",
+    "e_phase": "Phase für Markerfarbe",
+    "e_all_phases": "Alle Phasen (schlechtester Wert)",
+    "e_refresh": "Aktualisierung",
+    "e_show_status": "Status unten links anzeigen",
+    "e_show_legend": "Legende unten rechts anzeigen",
+    "e_coop": "Zwei Finger zum Verschieben (Seite lässt sich über die Karte scrollen)",
+    "e_coop_hint": "Angehakt bewegt ein Finger die Seite statt der Karte; die Karte verschiebt und zoomt man mit zwei Fingern, am Computer zoomt man mit Strg (Mac: ⌘) + Mausrad.",
+    "e_size_hint": "Breite und Höhe werden ausschließlich über Home Assistants Tab „Layout“ eingestellt. Die Karte füllt den dort zugewiesenen Bereich automatisch vollständig aus.",
+    "e_center": "Kartenmittelpunkt",
+    "e_use_ha": "Home-Assistant-Standort verwenden",
+    "e_lat": "Breitengrad",
+    "e_lon": "Längengrad",
+    "e_ha_hint": "Wenn aktiviert, folgt die Karte automatisch dem unter Einstellungen → System → Allgemein hinterlegten Home-Assistant-Standort.",
+    "description": "Zeigt Messpunkte von ortsnetz-auslastung.de rund um den Home-Assistant-Standort."
+  }
+};
+function cardLang(hass) {
+  const code = hass?.locale?.language || hass?.language || globalThis.document?.querySelector?.("home-assistant")?.hass?.locale?.language || globalThis.navigator?.language || "en";
+  return String(code).toLowerCase().startsWith("de") ? "de" : "en";
+}
+function texts(hass) {
+  return I18N[cardLang(hass)];
+}
+function fill(text, values) {
+  return text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
+}
+function timeLocale(hass) {
+  return hass?.locale?.language || hass?.language || (cardLang(hass) === "de" ? "de-DE" : "en");
+}
+
 function fallbackStyle(dark) {
   return {
     version: 8,
@@ -52,14 +180,16 @@ const DEFAULT_SCALE = { criticalLow: 207, warningLow: 218, warningHigh: 242, cri
 // rank: Farbe eines Clusters = höchster Rang seiner Punkte (schlechtester Wert,
 // bei gleicher Schwere Unterspannung).
 const STATUSES = [
-  { key: "crit_low", group: "Unterspannung", label: "unter 207 V", color: "#1d4ed8", severity: 2, low: true, rank: 4 },
-  { key: "warn_low", group: "Unterspannung", label: "207 – 218 V", color: "#38bdf8", severity: 1, low: true, rank: 2 },
-  { key: "normal", group: "Normalzustand", label: "218 – 242 V", color: "#16a34a", severity: 0, low: false, rank: 0 },
-  { key: "warn_high", group: "Überspannung", label: "242 – 253 V", color: "#f59e0b", severity: 1, low: false, rank: 1 },
-  { key: "crit_high", group: "Überspannung", label: "über 253 V", color: "#b91c1c", severity: 2, low: false, rank: 3 },
+  { key: "crit_low", group: "low", label: "below", color: "#1d4ed8", severity: 2, low: true, rank: 4 },
+  { key: "warn_low", group: "low", label: "207 – 218 V", color: "#38bdf8", severity: 1, low: true, rank: 2 },
+  { key: "normal", group: "normal", label: "218 – 242 V", color: "#16a34a", severity: 0, low: false, rank: 0 },
+  { key: "warn_high", group: "high", label: "242 – 253 V", color: "#f59e0b", severity: 1, low: false, rank: 1 },
+  { key: "crit_high", group: "high", label: "above", color: "#b91c1c", severity: 2, low: false, rank: 3 },
 ];
 const STATUS_BY_KEY = Object.fromEntries(STATUSES.map((s) => [s.key, s]));
-const LEGEND_GROUPS = ["Normalzustand", "Unterspannung", "Überspannung"];
+const LEGEND_GROUPS = ["normal", "low", "high"];
+// Anzeigetext eines Status (Spannungsbereich); "below"/"above" sind Übersetzungsschlüssel.
+const statusLabel = (status, T) => T[status.label] ?? status.label;
 
 // Je Cluster: Anzahl Punkte je Status (für die Tortendiagramme) und der höchste Rang.
 const CLUSTER_PROPERTIES = {
@@ -113,11 +243,13 @@ function normalizeConfig(config) {
 const CONFIG_KEYS = [...Object.keys(DEFAULT_CONFIG), "latitude", "longitude"];
 
 // Hinweistexte der kooperativen Gesten (Schlüssel aus MapLibre).
-const COOPERATIVE_LOCALE = {
-  "CooperativeGesturesHandler.WindowsHelpText": "Strg + Mausrad zum Zoomen der Karte",
-  "CooperativeGesturesHandler.MacHelpText": "⌘ + Mausrad zum Zoomen der Karte",
-  "CooperativeGesturesHandler.MobileHelpText": "Karte mit zwei Fingern bewegen",
-};
+function cooperativeLocale(T) {
+  return {
+    "CooperativeGesturesHandler.WindowsHelpText": T.coop_win,
+    "CooperativeGesturesHandler.MacHelpText": T.coop_mac,
+    "CooperativeGesturesHandler.MobileHelpText": T.coop_mobile,
+  };
+}
 
 // Nach einem fehlgeschlagenen Abruf erneut versuchen (Sekunden), danach nur im Intervall.
 const RETRY_DELAYS = [15, 30, 60];
@@ -282,15 +414,15 @@ function keepOwnLayers(previous, next) {
 }
 
 // Statustext je Fehlerursache des WebSocket-Befehls.
-function loadErrorText(error) {
+function loadErrorText(error, T) {
   switch (error?.code) {
     case "no_data":
-      return "Keine Daten von ortsnetz-auslastung.de – später erneut versuchen";
+      return T.no_data;
     case "not_loaded":
     case "unknown_command":
-      return "Integration Ortsnetz Map nicht eingerichtet";
+      return T.not_loaded;
     default:
-      return "Backend nicht erreichbar – Integration prüfen";
+      return T.backend;
   }
 }
 
@@ -498,7 +630,7 @@ class OrtsnetzMapCard extends HTMLElement {
         </style>
         <div class="ortsnetz-wrap">
           <div class="ortsnetz-map"></div>
-          <div class="ortsnetz-status" ${this._config.show_status ? "" : "hidden"}>Lade Messwerte …</div>
+          <div class="ortsnetz-status" ${this._config.show_status ? "" : "hidden"}>${texts(this._hass).loading}</div>
           <div class="ortsnetz-legend" ${this._config.show_legend ? "" : "hidden"}></div>
           <div class="ortsnetz-debug" ${this._config.debug ? "" : "hidden"}></div>
         </div>
@@ -537,7 +669,7 @@ class OrtsnetzMapCard extends HTMLElement {
         pitchWithRotate: false,
         touchPitch: false,
         // Deutsche Hinweise immer, damit sie auch nach späterem Einschalten passen.
-        locale: COOPERATIVE_LOCALE,
+        locale: cooperativeLocale(texts(this._hass)),
         ...(this._config.cooperative_gestures ? { cooperativeGestures: true } : {}),
       });
       this._map.touchZoomRotate.disableRotation();
@@ -573,7 +705,7 @@ class OrtsnetzMapCard extends HTMLElement {
       setTimeout(() => this._map?.resize(), 250);
     } catch (error) {
       if (generation !== this._generation) return;
-      this._setStatus(`Fehler: ${error?.message || error}`);
+      this._setStatus(`${texts(this._hass).error}: ${error?.message || error}`);
       console.error("Ortsnetz Map initialization failed", error);
     }
   }
@@ -665,14 +797,14 @@ class OrtsnetzMapCard extends HTMLElement {
       this._useFallbackStyle();
       return;
     }
-    this._setMapProblem(BASEMAP_PROBLEM);
+    this._setMapProblem(texts(this._hass).basemap);
   }
 
   _useFallbackStyle() {
     if (!this._map || this._fallbackActive) return;
     this._fallbackActive = true;
     clearTimeout(this._styleTimer);
-    this._setMapProblem(BASEMAP_PROBLEM);
+    this._setMapProblem(texts(this._hass).basemap);
     // Eigene Quelle und Layer legt style.load danach neu an (_syncSource).
     this._map.setStyle(fallbackStyle(Boolean(this._lastThemeDark)), { diff: false });
   }
@@ -849,13 +981,14 @@ class OrtsnetzMapCard extends HTMLElement {
   _phaseRow(label, value) {
     const voltage = toVoltage(value);
     if (voltage === null) {
-      return `<div class="popup-phase">${label}: <span class="popup-muted">nicht gemessen</span></div>`;
+      return `<div class="popup-phase">${label}: <span class="popup-muted">${texts(this._hass).not_measured}</span></div>`;
     }
     const status = this._phaseStatus(voltage);
     return `<div class="popup-phase"><span class="popup-dot" style="background:${escapeHtml(this._color(status.key))}"></span>${label}: <span class="popup-value">${voltage.toFixed(1)} V</span></div>`;
   }
 
   _popupHtml(p) {
+    const T = texts(this._hass);
     const frequency = toNumber(p.grid_frequency_hz);
     const yieldValue = toNumber(p.forecast_kwh_per_kwp_day);
     const forecastKwh = toNumber(p.pv_forecast_kwh);
@@ -863,18 +996,18 @@ class OrtsnetzMapCard extends HTMLElement {
     const stale = isStaleFlag(p.stale);
     return `
       <div>
-        <div class="popup-title">Ortsnetz-Messpunkt</div>
+        <div class="popup-title">${T.point_title}</div>
         ${this._phaseRow("L1", p.l1_v)}
         ${this._phaseRow("L2", p.l2_v)}
         ${this._phaseRow("L3", p.l3_v)}
         <div style="margin-top:8px">
-          Frequenz: <span class="popup-value">${frequency !== null ? frequency.toFixed(2) + " Hz" : "–"}</span><br>
-          ${yieldValue !== null ? `PV-Forecast: <span class="popup-value">${forecastKwh !== null ? forecastKwh.toFixed(1) + " kWh · " : ""}${yieldValue.toFixed(2)} kWh/kWp/Tag</span><br>` : ""}
-          Messungen: <span class="popup-value">${sampleCount !== null ? Math.round(sampleCount) : "–"}</span>
+          ${T.frequency}: <span class="popup-value">${frequency !== null ? frequency.toFixed(2) + " Hz" : "–"}</span><br>
+          ${yieldValue !== null ? `PV-Forecast: <span class="popup-value">${forecastKwh !== null ? forecastKwh.toFixed(1) + " kWh · " : ""}${yieldValue.toFixed(2)} ${T.pv_unit}</span><br>` : ""}
+          ${T.readings}: <span class="popup-value">${sampleCount !== null ? Math.round(sampleCount) : "–"}</span>
         </div>
-        ${stale ? '<div class="popup-warning">⚠️ Messwert möglicherweise veraltet</div>' : ""}
-        <div class="popup-time">Letzte Messung: ${escapeHtml(this._formatDate(p.observed_at))}</div>
-        ${p.public_id ? '<div class="popup-charts"><span class="popup-muted">Verlauf wird geladen …</span></div>' : ""}
+        ${stale ? `<div class="popup-warning">${T.stale}</div>` : ""}
+        <div class="popup-time">${T.last_reading}: ${escapeHtml(this._formatDate(p.observed_at))}</div>
+        ${p.public_id ? `<div class="popup-charts"><span class="popup-muted">${T.history_loading}</span></div>` : ""}
       </div>`;
   }
 
@@ -892,7 +1025,7 @@ class OrtsnetzMapCard extends HTMLElement {
       container.innerHTML = this._historyHtml(history);
     } catch (error) {
       if (!container.isConnected) return;
-      container.innerHTML = '<span class="popup-muted">Verlauf nicht verfügbar</span>';
+      container.innerHTML = `<span class="popup-muted">${texts(this._hass).history_na}</span>`;
     }
     // Das Popup ist gewachsen: erneut prüfen, ob es noch in die Karte passt.
     this._keepPopupVisible(popup);
@@ -917,7 +1050,7 @@ class OrtsnetzMapCard extends HTMLElement {
       }))
       .filter((sample) => Number.isFinite(sample.t))
       .sort((a, b) => a.t - b.t);
-    if (!samples.length) return '<span class="popup-muted">Keine Verlaufsdaten</span>';
+    if (!samples.length) return `<span class="popup-muted">${texts(this._hass).no_history}</span>`;
 
     let end = Date.parse(history.end);
     let start = Date.parse(history.start);
@@ -950,10 +1083,10 @@ class OrtsnetzMapCard extends HTMLElement {
     });
 
     return `
-      <div class="chart-title"><span>Spannung (24 h)</span><span>${legend}</span></div>
-      ${voltageChart || '<span class="popup-muted">Keine Spannungswerte</span>'}
-      <div class="chart-title"><span>Netzfrequenz (24 h)</span><span>Hz</span></div>
-      ${frequencyChart || '<span class="popup-muted">Keine Frequenzwerte</span>'}`;
+      <div class="chart-title"><span>${texts(this._hass).voltage24}</span><span>${legend}</span></div>
+      ${voltageChart || `<span class="popup-muted">${texts(this._hass).no_voltage}</span>`}
+      <div class="chart-title"><span>${texts(this._hass).freq24}</span><span>Hz</span></div>
+      ${frequencyChart || `<span class="popup-muted">${texts(this._hass).no_freq}</span>`}`;
   }
 
   _lineChart({ samples, series, start, end, bands, minSpan, decimals }) {
@@ -1003,7 +1136,7 @@ class OrtsnetzMapCard extends HTMLElement {
       svg += `<path d="${path}" fill="none" stroke="${item.color}" stroke-width="1.3" stroke-linejoin="round"/>`;
     }
 
-    const time = (t) => new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const time = (t) => new Date(t).toLocaleTimeString(timeLocale(this._hass), { hour: "2-digit", minute: "2-digit" });
     svg += `<text x="${left}" y="${H - 3}" text-anchor="start">${time(start)}</text>`;
     svg += `<text x="${(left + W - right) / 2}" y="${H - 3}" text-anchor="middle">${time(start + span / 2)}</text>`;
     svg += `<text x="${W - right}" y="${H - 3}" text-anchor="end">${time(end)}</text>`;
@@ -1056,31 +1189,32 @@ class OrtsnetzMapCard extends HTMLElement {
     const { counts, withForecast, fromServer } = this._statusCounts();
     const sites = this._currentData?.points?.length ?? 0;
     const toggle = this._legendOpen ? "–" : "+";
+    const T = texts(this._hass);
 
     let body = "";
     if (this._legendOpen) {
-      body += `<div class="legend-sub">${sites} Standorte, Messung alle 5 Minuten</div>`;
-      body += `<div class="legend-group">${fromServer ? "Messungen der letzten 24 Stunden:" : "Aktuelle Messpunkte:"}</div>`;
+      body += `<div class="legend-sub">${fill(T.sites, { n: sites })}</div>`;
+      body += `<div class="legend-group">${fromServer ? T.last24 : T.current}</div>`;
       for (const group of LEGEND_GROUPS) {
         const rows = STATUSES.filter((s) => s.group === group && (counts[s.key] > 0 || !this._enabled.has(s.key)));
         if (!rows.length) continue;
-        body += `<div class="legend-subgroup">${group}:</div>`;
+        body += `<div class="legend-subgroup">${T["g_" + group]}:</div>`;
         for (const s of rows) {
           const on = this._enabled.has(s.key);
           body += `<label class="legend-row ${on ? "" : "off"}">
             <span class="legend-dot" style="background:${escapeHtml(this._color(s.key))}"></span>
-            <span class="legend-text">${s.label}</span>
+            <span class="legend-text">${statusLabel(s, T)}</span>
             <span class="legend-count">${counts[s.key]}</span>
             <input type="checkbox" data-status="${s.key}" ${on ? "checked" : ""}>
           </label>`;
         }
       }
       if (withForecast) {
-        body += `<div class="legend-group legend-size">Markergröße:</div><div>erwarteter PV-Ertrag in kWh/kWp/Tag</div>`;
+        body += `<div class="legend-group legend-size">${T.marker_size}</div><div>${T.pv_yield}</div>`;
       }
     }
 
-    this._legendElement.innerHTML = `<div class="legend-head"><span>Legende</span><span class="legend-toggle">${toggle}</span></div>${body}`;
+    this._legendElement.innerHTML = `<div class="legend-head"><span>${T.legend}</span><span class="legend-toggle">${toggle}</span></div>${body}`;
   }
 
   // ---- Theme ---------------------------------------------------------------
@@ -1138,7 +1272,7 @@ class OrtsnetzMapCard extends HTMLElement {
   async _loadMeasurements() {
     if (!this._hass?.connection) return;
     // "Lade …" nur beim ersten Laden; danach bleibt der letzte Stand sichtbar.
-    if (!this._currentData) this._setStatus("Lade Messwerte …");
+    if (!this._currentData) this._setStatus(texts(this._hass).loading);
     // Nur die zuletzt gestartete Anfrage darf die Anzeige ändern.
     const request = ++this._loadRequest;
     const generation = this._generation;
@@ -1151,8 +1285,8 @@ class OrtsnetzMapCard extends HTMLElement {
       this._applyScale(data);
       this._renderLegend();
       this._renderPoints(data);
-      this._dataTime = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-      this._setStatus(`${data.points?.length ?? 0} Messpunkte · ${this._dataTime}`);
+      this._dataTime = new Date().toLocaleTimeString(timeLocale(this._hass), { hour: "2-digit", minute: "2-digit" });
+      this._setStatus(`${fill(texts(this._hass).points, { n: data.points?.length ?? 0 })} · ${this._dataTime}`);
       this._retryCount = 0;
       clearTimeout(this._retryTimer);
       this._retryTimer = null;
@@ -1160,7 +1294,7 @@ class OrtsnetzMapCard extends HTMLElement {
       if (request !== this._loadRequest || generation !== this._generation) return;
       console.error("Could not load Ortsnetz points", error);
       this._setStatus(
-        this._currentData ? `Aktualisierung fehlgeschlagen, zeige Stand ${this._dataTime}` : loadErrorText(error),
+        this._currentData ? fill(texts(this._hass).refresh_failed, { t: this._dataTime }) : loadErrorText(error, texts(this._hass)),
       );
       this._scheduleRetry();
     }
@@ -1371,7 +1505,8 @@ class OrtsnetzMapCard extends HTMLElement {
         angle = next;
       }
     }
-    const label = `Cluster mit ${total} Messpunkten: ${parts.map((part) => `${part.n} ${part.status.label}`).join(", ")}. Antippen zum Hineinzoomen.`;
+    const T = texts(this._hass);
+    const label = fill(T.cluster, { n: total, parts: parts.map((part) => `${part.n} ${statusLabel(part.status, T)}`).join(", ") });
     const element = document.createElement("div");
     element.className = "ortsnetz-pie";
     if (p.cluster_id !== undefined) element.dataset.clusterId = String(p.cluster_id);
@@ -1484,8 +1619,8 @@ class OrtsnetzMapCard extends HTMLElement {
   }
 
   _formatDate(value) {
-    if (!value) return "unbekannt";
-    return new Date(value).toLocaleString("de-DE", {
+    if (!value) return texts(this._hass).unknown;
+    return new Date(value).toLocaleString(timeLocale(this._hass), {
       day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit",
     });
   }
@@ -1570,6 +1705,7 @@ class OrtsnetzMapCardEditor extends HTMLElement {
     this._rendered = true;
     const view = this._view;
     const useHaLocation = this._usesHaLocation();
+    const T = texts(this._hass);
     const lat = useHaLocation ? (this._hass?.config?.latitude ?? "") : view.latitude;
     const lon = useHaLocation ? (this._hass?.config?.longitude ?? "") : view.longitude;
 
@@ -1594,31 +1730,31 @@ class OrtsnetzMapCardEditor extends HTMLElement {
       </style>
       <div class="editor">
         <div class="section">
-          <div class="section-title">Darstellung</div>
+          <div class="section-title">${T.e_display}</div>
           <div class="grid">
-            <label class="field">Zoom<input data-key="zoom" type="number" min="1" max="19" step="1" value="${escapeHtml(view.zoom)}"></label>
-            <label class="field">Phase für Markerfarbe<select data-key="phase">
-              <option value="auto" ${view.phase === "auto" ? "selected" : ""}>Alle Phasen (schlechtester Wert)</option>
+            <label class="field">${T.e_zoom}<input data-key="zoom" type="number" min="1" max="19" step="1" value="${escapeHtml(view.zoom)}"></label>
+            <label class="field">${T.e_phase}<select data-key="phase">
+              <option value="auto" ${view.phase === "auto" ? "selected" : ""}>${T.e_all_phases}</option>
               <option value="L1" ${view.phase === "L1" ? "selected" : ""}>L1</option>
               <option value="L2" ${view.phase === "L2" ? "selected" : ""}>L2</option>
               <option value="L3" ${view.phase === "L3" ? "selected" : ""}>L3</option>
             </select></label>
-            <label class="field">Aktualisierung<div class="value-row"><input data-key="refresh_interval" type="number" min="60" max="3600" step="60" value="${escapeHtml(view.refresh_interval)}"><span class="unit">s</span></div></label>
+            <label class="field">${T.e_refresh}<div class="value-row"><input data-key="refresh_interval" type="number" min="60" max="3600" step="60" value="${escapeHtml(view.refresh_interval)}"><span class="unit">s</span></div></label>
           </div>
-          <label class="check"><input data-key="show_status" type="checkbox" ${view.show_status ? "checked" : ""}>Status unten links anzeigen</label>
-          <label class="check"><input data-key="show_legend" type="checkbox" ${view.show_legend ? "checked" : ""}>Legende unten rechts anzeigen</label>
-          <label class="check"><input data-key="cooperative_gestures" type="checkbox" ${view.cooperative_gestures ? "checked" : ""}>Zwei Finger zum Verschieben (Seite lässt sich über die Karte scrollen)</label>
-          <div class="hint">Angehakt bewegt ein Finger die Seite statt der Karte; die Karte verschiebt und zoomt man mit zwei Fingern, am Computer zoomt man mit Strg (Mac: ⌘) + Mausrad.</div>
-          <div class="hint">Breite und Höhe werden ausschließlich über Home Assistants Tab „Layout“ eingestellt. Die Karte füllt den dort zugewiesenen Bereich automatisch vollständig aus.</div>
+          <label class="check"><input data-key="show_status" type="checkbox" ${view.show_status ? "checked" : ""}>${T.e_show_status}</label>
+          <label class="check"><input data-key="show_legend" type="checkbox" ${view.show_legend ? "checked" : ""}>${T.e_show_legend}</label>
+          <label class="check"><input data-key="cooperative_gestures" type="checkbox" ${view.cooperative_gestures ? "checked" : ""}>${T.e_coop}</label>
+          <div class="hint">${T.e_coop_hint}</div>
+          <div class="hint">${T.e_size_hint}</div>
         </div>
         <div class="section">
-          <div class="section-title">Kartenmittelpunkt</div>
-          <label class="check"><input data-key="use_ha_location" type="checkbox" ${useHaLocation ? "checked" : ""}>Home-Assistant-Standort verwenden</label>
+          <div class="section-title">${T.e_center}</div>
+          <label class="check"><input data-key="use_ha_location" type="checkbox" ${useHaLocation ? "checked" : ""}>${T.e_use_ha}</label>
           <div class="grid coords" ${useHaLocation ? "hidden" : ""}>
-            <label class="field">Breitengrad<input data-key="latitude" type="number" min="-90" max="90" step="0.000001" value="${escapeHtml(lat)}"></label>
-            <label class="field">Längengrad<input data-key="longitude" type="number" min="-180" max="180" step="0.000001" value="${escapeHtml(lon)}"></label>
+            <label class="field">${T.e_lat}<input data-key="latitude" type="number" min="-90" max="90" step="0.000001" value="${escapeHtml(lat)}"></label>
+            <label class="field">${T.e_lon}<input data-key="longitude" type="number" min="-180" max="180" step="0.000001" value="${escapeHtml(lon)}"></label>
           </div>
-          <div class="hint">Wenn aktiviert, folgt die Karte automatisch dem unter Einstellungen → System → Allgemein hinterlegten Home-Assistant-Standort.</div>
+          <div class="hint">${T.e_ha_hint}</div>
         </div>
       </div>`;
 
@@ -1720,7 +1856,7 @@ if (!window.customCards.some((card) => card.type === "ortsnetz-map-card")) {
   window.customCards.push({
     type: "ortsnetz-map-card",
     name: "Ortsnetz Map",
-    description: "Zeigt Messpunkte von ortsnetz-auslastung.de rund um den Home-Assistant-Standort.",
+    description: texts(globalThis.document?.querySelector?.("home-assistant")?.hass).description,
     preview: false,
   });
 }
