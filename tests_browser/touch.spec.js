@@ -19,7 +19,7 @@ async function gesture(page, frames, selector = null) {
   return page.evaluate(async ({ frames, selector }) => {
     const card = window.__card;
     const map = card._map;
-    const target = selector ? card.querySelector(selector) : map.getCanvas();
+    const target = selector ? card.shadowRoot.querySelector(selector) : map.getCanvas();
     const rect = map.getCanvas().getBoundingClientRect();
     const fire = (type, points) => {
       const touches = points.map(([x, y], i) => ({
@@ -139,13 +139,13 @@ test("Hinweis für zwei Finger: deutsch und unter Legende und Statuszeile", asyn
     window.__overlay = null;
     // MapLibre feuert das Ereignis und setzt die Klasse direkt danach: einen Mikrotask warten.
     card._map.once("cooperativegestureprevented", () => queueMicrotask(() => {
-      const screen = card.querySelector(".maplibregl-cooperative-gesture-screen");
+      const screen = card.shadowRoot.querySelector(".maplibregl-cooperative-gesture-screen");
       const z = (el) => Number(getComputedStyle(el).zIndex);
       window.__overlay = {
         shown: screen.classList.contains("maplibregl-show"),
         mobile: screen.querySelector(".maplibregl-mobile-message")?.textContent,
         desktop: screen.querySelector(".maplibregl-desktop-message")?.textContent,
-        below: z(screen) < z(card.querySelector(".ortsnetz-legend")) && z(screen) < z(card.querySelector(".ortsnetz-status")),
+        below: z(screen) < z(card.shadowRoot.querySelector(".ortsnetz-legend")) && z(screen) < z(card.shadowRoot.querySelector(".ortsnetz-status")),
       };
     }));
   });
