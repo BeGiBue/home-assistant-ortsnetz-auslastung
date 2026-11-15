@@ -12,11 +12,11 @@ async function pieState(page) {
   return page.evaluate(() => {
     const card = window.__card;
     const map = card._map;
-    const box = card.querySelector(".ortsnetz-map").getBoundingClientRect();
+    const box = card.shadowRoot.querySelector(".ortsnetz-map").getBoundingClientRect();
     const statuses = ["crit_low", "warn_low", "normal", "warn_high", "crit_high"];
     const clusters = new Map();
     for (const f of map.queryRenderedFeatures({ layers: ["ortsnetz-clusters"] })) clusters.set(String(f.properties.cluster_id), f);
-    const pies = [...card.querySelectorAll(".ortsnetz-pie")];
+    const pies = [...card.shadowRoot.querySelectorAll(".ortsnetz-pie")];
     const problems = [];
     const seen = new Set();
     for (const pie of pies) {
@@ -71,8 +71,8 @@ test("Torten folgen der Karte während der Bewegung und werden nicht neu aufgeba
   const worst = await page.evaluate(() => new Promise((resolve) => {
     const card = window.__card;
     const map = card._map;
-    const box = card.querySelector(".ortsnetz-map").getBoundingClientRect();
-    const before = new Map([...card.querySelectorAll(".ortsnetz-pie")].map((el) => [el.dataset.clusterId, el]));
+    const box = card.shadowRoot.querySelector(".ortsnetz-map").getBoundingClientRect();
+    const before = new Map([...card.shadowRoot.querySelectorAll(".ortsnetz-pie")].map((el) => [el.dataset.clusterId, el]));
     let max = 0;
     let frames = 0;
     let replaced = 0;
@@ -89,7 +89,7 @@ test("Torten folgen der Karte während der Bewegung und werden nicht neu aufgeba
     map.once("moveend", () => {
       map.off("render", sample);
       for (const [id, el] of before) {
-        const now = card.querySelector(`.ortsnetz-pie[data-cluster-id="${id}"]`);
+        const now = card.shadowRoot.querySelector(`.ortsnetz-pie[data-cluster-id="${id}"]`);
         if (now && now !== el) replaced += 1;
       }
       resolve({ max, frames, replaced, kept: before.size });
@@ -106,8 +106,8 @@ test("Klick und Tastatur auf eine Torte zoomen hinein", async ({ page }) => {
   await openCard(page, { size: SIZES.gross, config: { latitude: 51.0, longitude: 10.0, zoom: 6 } });
   const target = await page.evaluate(() => {
     const card = window.__card;
-    const box = card.querySelector(".ortsnetz-map").getBoundingClientRect();
-    const pie = [...card.querySelectorAll(".ortsnetz-pie")].find((el) => {
+    const box = card.shadowRoot.querySelector(".ortsnetz-map").getBoundingClientRect();
+    const pie = [...card.shadowRoot.querySelectorAll(".ortsnetz-pie")].find((el) => {
       const r = el.getBoundingClientRect();
       return r.left > box.left + 80 && r.top > box.top + 80 && r.right < box.right - 280 && r.bottom < box.bottom - 80;
     });

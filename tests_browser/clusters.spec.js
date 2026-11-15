@@ -91,7 +91,7 @@ test("Legendenfilter und Theme-Wechsel", async ({ page }) => {
   await openCard(page, { size: SIZES.gross, config: { latitude: 51.0, longitude: 10.0, zoom: 6 } });
   await check(page, "Start");
   await page.evaluate(() => {
-    const input = window.__card.querySelector('.ortsnetz-legend input[data-status="normal"]');
+    const input = window.__card.shadowRoot.querySelector('.ortsnetz-legend input[data-status="normal"]');
     input.checked = false;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });

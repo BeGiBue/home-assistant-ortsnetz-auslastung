@@ -62,7 +62,7 @@ test("Stil nicht erreichbar: Punkte auf neutralem Hintergrund, Erklärung, spät
   const counts = await page.evaluate(() => ({
     pies: customElements.get("ortsnetz-map-card").clusterPies,
     layer: Boolean(window.__card._map.getLayer("ortsnetz-cluster-count")),
-    shown: window.__card.querySelectorAll(".ortsnetz-pie span").length,
+    shown: window.__card.shadowRoot.querySelectorAll(".ortsnetz-pie span").length,
   }));
   if (counts.pies) expect(counts.shown).toBeGreaterThan(0);
   else expect(counts.layer).toBe(true);
