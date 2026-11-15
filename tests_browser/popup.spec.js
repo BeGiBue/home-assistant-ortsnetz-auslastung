@@ -40,7 +40,7 @@ async function geometry(page) {
   return page.evaluate(() => {
     const card = window.__card;
     const map = card._map;
-    const box = card.querySelector(".ortsnetz-map").getBoundingClientRect();
+    const box = card.shadowRoot.querySelector(".ortsnetz-map").getBoundingClientRect();
     const element = card._popup?.getElement();
     if (!element?.isConnected) return null;
     const rect = element.getBoundingClientRect();
@@ -59,7 +59,7 @@ async function geometry(page) {
       anchor: [...element.classList].find((name) => name.startsWith("maplibregl-popup-anchor-")),
       // Liegt etwas (Legende, Statuszeile) über dem Popup? Ecken des Inhalts und das Kreuz prüfen.
       covered: (() => {
-        const root = card.getRootNode();
+        const root = card.shadowRoot;
         const content = element.querySelector(".maplibregl-popup-content").getBoundingClientRect();
         // Raster im Abstand von 16 px über den ganzen Inhalt, dazu das Kreuz. Die Statuszeile
         // hat pointer-events:none und wird hier nicht erkannt; sie liegt wie die Legende auf z-index 5.

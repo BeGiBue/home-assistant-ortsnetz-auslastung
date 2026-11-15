@@ -119,14 +119,14 @@ const HARNESS_HTML = `<!doctype html>
     const host = document.getElementById("host");
     host.style.setProperty("--w", size.width + "px");
     host.style.setProperty("--h", size.height + "px");
-    // Wie in Home Assistant (hui-card, Sections): die Card liegt in einem Shadow-Root,
-    // Stylesheets aus document.head wirken dort nicht.
+    // Wie in Home Assistant (hui-card, Sections): die Card liegt im Shadow-Root der
+    // Section, Stylesheets aus document.head wirken dort nicht. Ihr Markup liegt im
+    // eigenen Shadow-Root der Card (card.shadowRoot).
     const root = host.attachShadow({ mode: "open" });
     const style = document.createElement("style");
     // Farbvariablen eines hellen Home-Assistant-Themes (sonst wären z. B. Popups durchsichtig).
     style.textContent = ":host{display:block;--card-background-color:#fff;--primary-background-color:#fafafa;" +
-      "--primary-text-color:#212121;--secondary-text-color:#727272;--primary-color:#03a9f4;--divider-color:#e0e0e0}" +
-      " ortsnetz-map-card{display:block;height:100%}";
+      "--primary-text-color:#212121;--secondary-text-color:#727272;--primary-color:#03a9f4;--divider-color:#e0e0e0}";
     root.appendChild(style);
     const card = document.createElement("ortsnetz-map-card");
     card.setConfig(config);
@@ -296,7 +296,7 @@ export async function representation(page) {
         for (const leaf of leaves) add(leaf.properties.public_id);
       }
     } else {
-      const box = card.querySelector(".ortsnetz-map").getBoundingClientRect();
+      const box = card.shadowRoot.querySelector(".ortsnetz-map").getBoundingClientRect();
       for (const marker of card._clusterMarkers.values()) {
         const element = marker.getElement();
         if (!element.isConnected) continue;

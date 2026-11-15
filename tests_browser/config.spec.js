@@ -16,7 +16,7 @@ test("setConfig passt Kamera, Anzeige und Gesten an, ohne die Karte neu aufzubau
       same: map === window.__firstMap,
       zoom: map.getZoom(),
       center: map.getCenter().toArray().map((v) => Number(v.toFixed(2))),
-      legendHidden: card.querySelector(".ortsnetz-legend").hidden,
+      legendHidden: card.shadowRoot.querySelector(".ortsnetz-legend").hidden,
       cooperative: map.cooperativeGestures.isEnabled(),
     };
   });
@@ -46,15 +46,15 @@ for (const size of [{ width: 380, height: 300 }, { width: 900, height: 650 }]) {
     await openCard(page, { size, config: { latitude: 51.0, longitude: 10.0, zoom: 6 } });
     const overlaps = () => page.evaluate(() => {
       const card = window.__card;
-      const attrib = card.querySelector(".maplibregl-ctrl-attrib").getBoundingClientRect();
+      const attrib = card.shadowRoot.querySelector(".maplibregl-ctrl-attrib").getBoundingClientRect();
       const hit = (el) => {
         const r = el.getBoundingClientRect();
         return r.left < attrib.right && r.right > attrib.left && r.top < attrib.bottom && r.bottom > attrib.top;
       };
       return {
-        expanded: card.querySelector(".maplibregl-ctrl-attrib").classList.contains("maplibregl-compact-show"),
-        legend: hit(card.querySelector(".ortsnetz-legend")),
-        status: hit(card.querySelector(".ortsnetz-status")),
+        expanded: card.shadowRoot.querySelector(".maplibregl-ctrl-attrib").classList.contains("maplibregl-compact-show"),
+        legend: hit(card.shadowRoot.querySelector(".ortsnetz-legend")),
+        status: hit(card.shadowRoot.querySelector(".ortsnetz-status")),
       };
     });
     const toggle = page.locator(".maplibregl-ctrl-attrib-button");

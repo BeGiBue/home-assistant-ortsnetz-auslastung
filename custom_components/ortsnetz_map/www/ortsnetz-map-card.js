@@ -432,6 +432,10 @@ function loadErrorText(error, T) {
 class OrtsnetzMapCard extends HTMLElement {
   constructor() {
     super();
+    // Eigener Shadow-Root: Die Styles der Card (auch :host und ha-card) gelten nur hier
+    // und treffen weder die umgebende Section noch andere Karten; fremde Styles wirken
+    // umgekehrt nicht auf Karte, Popup und Legende.
+    this._root = this.attachShadow({ mode: "open" });
     this._config = { ...DEFAULT_CONFIG };
     this._hass = null;
     this._map = null;
@@ -563,7 +567,7 @@ class OrtsnetzMapCard extends HTMLElement {
     this._styleReady = false;
     this._fallbackActive = false;
     this._lastThemeDark = null;
-    if (clearMarkup) this.innerHTML = "";
+    if (clearMarkup) this._root.innerHTML = "";
   }
 
   async _initialize() {
@@ -571,7 +575,7 @@ class OrtsnetzMapCard extends HTMLElement {
     this._initialized = true;
     const generation = ++this._generation;
 
-    this.innerHTML = `
+    this._root.innerHTML = `
       <ha-card>
         <style>
           @import url("${MAPLIBRE_CSS}");
@@ -642,10 +646,10 @@ class OrtsnetzMapCard extends HTMLElement {
         </div>
       </ha-card>`;
 
-    this._mapElement = this.querySelector(".ortsnetz-map");
-    this._statusElement = this.querySelector(".ortsnetz-status");
-    this._debugElement = this.querySelector(".ortsnetz-debug");
-    this._legendElement = this.querySelector(".ortsnetz-legend");
+    this._mapElement = this._root.querySelector(".ortsnetz-map");
+    this._statusElement = this._root.querySelector(".ortsnetz-status");
+    this._debugElement = this._root.querySelector(".ortsnetz-debug");
+    this._legendElement = this._root.querySelector(".ortsnetz-legend");
     this._legendOpen = this._mapElement.clientWidth >= 520;
     this._installLegendEvents();
     this._renderLegend();
@@ -716,7 +720,7 @@ class OrtsnetzMapCard extends HTMLElement {
       // Halbfertigen Aufbau abräumen (Karte, Timer, Beobachter), Meldung stehen lassen
       // und nach 15, 30 und 60 s erneut versuchen.
       this._destroy(false);
-      this._statusElement = this.querySelector(".ortsnetz-status");
+      this._statusElement = this._root.querySelector(".ortsnetz-status");
       this._setStatus(`${texts(this._hass).error}: ${error?.message || error}`);
       this._scheduleInitRetry();
     }
@@ -738,7 +742,7 @@ class OrtsnetzMapCard extends HTMLElement {
   // (Quellenangabe samt Rand) plus 6 px, mindestens 28 px.
   _updateOverlayOffset() {
     const corner = this._mapElement?.querySelector(".maplibregl-ctrl-bottom-right");
-    const wrap = this.querySelector(".ortsnetz-wrap");
+    const wrap = this._root.querySelector(".ortsnetz-wrap");
     if (!corner || !wrap) return;
     wrap.style.setProperty("--ortsnetz-overlay-bottom", `${Math.max(28, corner.offsetHeight + 6)}px`);
   }
@@ -761,7 +765,7 @@ class OrtsnetzMapCard extends HTMLElement {
 
   // Kartengröße als CSS-Variablen für das Popup (Breite der Diagramme, maximale Höhe).
   _updateMapSize() {
-    const wrap = this.querySelector(".ortsnetz-wrap");
+    const wrap = this._root.querySelector(".ortsnetz-wrap");
     if (!wrap || !this._mapElement) return;
     const width = this._mapElement.clientWidth;
     const height = this._mapElement.clientHeight;
