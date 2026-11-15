@@ -690,6 +690,21 @@ describe("Initialisierung", () => {
     expect(card._map).toBe(maps[0]);
   });
 
+  it("baut ihr Markup im eigenen Shadow-Root auf und räumt es beim Entfernen ab", () => {
+    window.ortsnetzMapLibre = fakeMapLibre;
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+
+    expect(card.childElementCount).toBe(0);
+    expect(card.shadowRoot.querySelector("ha-card .ortsnetz-map")).not.toBeNull();
+    expect(card.shadowRoot.querySelector("style").textContent).toContain(":host");
+    expect(document.body.querySelector(".ortsnetz-map")).toBeNull();
+
+    card.remove();
+    expect(card.shadowRoot.childElementCount).toBe(0);
+  });
+
   it("legt nach Trennen und Neuverbinden während des Ladens nur eine Karte an", async () => {
     const card = newCard();
     card.hass = makeHass();
@@ -729,7 +744,7 @@ describe("Initialisierung", () => {
     first.dispatchEvent(new Event("error"));
     await flush();
 
-    expect(card.querySelector(".ortsnetz-status").textContent).toBe(
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").textContent).toBe(
       "Fehler: MapLibre konnte nicht geladen werden",
     );
     expect(mapLibreScript()).toBeNull();
@@ -753,7 +768,7 @@ describe("Startfehler", () => {
     mapLibreScript().dispatchEvent(new Event("load"));
     await flush();
 
-    expect(card.querySelector(".ortsnetz-status").textContent).toBe(
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").textContent).toBe(
       "Fehler: MapLibre konnte nicht geladen werden",
     );
     expect(mapLibreScript()).toBeNull();
@@ -774,7 +789,7 @@ describe("Startfehler", () => {
     document.body.appendChild(card);
     mapLibreScript().dispatchEvent(new Event("error"));
     await vi.advanceTimersByTimeAsync(0);
-    expect(card.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
     expect(card._map).toBeNull();
 
     await vi.advanceTimersByTimeAsync(15000);
@@ -784,7 +799,7 @@ describe("Startfehler", () => {
 
     expect(maps).toHaveLength(1);
     expect(card._map).toBe(maps[0]);
-    expect(card.querySelectorAll(".ortsnetz-map")).toHaveLength(1);
+    expect(card.shadowRoot.querySelectorAll(".ortsnetz-map")).toHaveLength(1);
   });
 
   it("gibt nach drei erfolglosen Neuversuchen auf (15, 30, 60 s)", async () => {
@@ -802,7 +817,7 @@ describe("Startfehler", () => {
       await vi.advanceTimersByTimeAsync(60000);
     }
     expect(attempts).toBe(4); // erster Aufbau und drei Neuversuche
-    expect(card.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
   });
 
   it("versucht es nicht erneut, wenn die Card inzwischen entfernt wurde", async () => {
@@ -829,7 +844,7 @@ describe("Startfehler", () => {
     expect(maps).toHaveLength(1);
     expect(maps[0].removed).toBe(true);
     expect(card._map).toBeNull();
-    expect(card.querySelector(".ortsnetz-status").textContent).toBe("Fehler: kein WebGL");
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").textContent).toBe("Fehler: kein WebGL");
   });
 });
 
@@ -842,7 +857,7 @@ describe("Kartenhintergrund nicht erreichbar", () => {
     await vi.advanceTimersByTimeAsync(0);
     return { card, map: maps[0], hass };
   }
-  const status = (card) => card.querySelector(".ortsnetz-status").textContent;
+  const status = (card) => card.shadowRoot.querySelector(".ortsnetz-status").textContent;
 
   beforeEach(() => vi.useFakeTimers());
 
@@ -1086,7 +1101,7 @@ describe("Abruf nach Fehlern", () => {
     await vi.advanceTimersByTimeAsync(0);
     return { card, connection };
   }
-  const status = (card) => card.querySelector(".ortsnetz-status").textContent;
+  const status = (card) => card.shadowRoot.querySelector(".ortsnetz-status").textContent;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1168,7 +1183,7 @@ describe("Diagnosezeile", () => {
     card.hass = makeHass();
     document.body.appendChild(card);
     await flush();
-    expect(card.querySelector(".ortsnetz-debug").hidden).toBe(true);
+    expect(card.shadowRoot.querySelector(".ortsnetz-debug").hidden).toBe(true);
   });
 
   it("zeigt mit debug: true Zoom, gesetzte Punkte, Cluster und sichtbare Einzelpunkte", async () => {
@@ -1193,7 +1208,7 @@ describe("Diagnosezeile", () => {
     ];
     card._allFeatures = new Array(312);
     map.fire("idle");
-    const element = card.querySelector(".ortsnetz-debug");
+    const element = card.shadowRoot.querySelector(".ortsnetz-debug");
     expect(element.hidden).toBe(false);
     expect(element.textContent).toBe("Zoom 8,4 · 312 Punkte gesetzt · 2 Cluster (12 Punkte) · 2 Einzel sichtbar");
   });
@@ -1317,9 +1332,9 @@ describe("setConfig ohne Neuaufbau", () => {
     card.setConfig({ show_legend: false, show_status: false, debug: true });
     await flush();
     expect(maps).toHaveLength(1);
-    expect(card.querySelector(".ortsnetz-legend").hidden).toBe(true);
-    expect(card.querySelector(".ortsnetz-status").hidden).toBe(true);
-    expect(card.querySelector(".ortsnetz-debug").hidden).toBe(false);
+    expect(card.shadowRoot.querySelector(".ortsnetz-legend").hidden).toBe(true);
+    expect(card.shadowRoot.querySelector(".ortsnetz-status").hidden).toBe(true);
+    expect(card.shadowRoot.querySelector(".ortsnetz-debug").hidden).toBe(false);
   });
 
   it("zeichnet bei anderer Phase neu", async () => {
