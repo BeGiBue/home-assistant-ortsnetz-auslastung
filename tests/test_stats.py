@@ -13,7 +13,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClien
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.ortsnetz_map import OrtsnetzDataCoordinator
-from custom_components.ortsnetz_map.const import API_URL, DOMAIN, STATS_URL
+from custom_components.ortsnetz_map.const import API_URL, STATS_URL
 
 STATS_PAYLOAD = {
     "start": "2026-10-05T16:00:56Z",

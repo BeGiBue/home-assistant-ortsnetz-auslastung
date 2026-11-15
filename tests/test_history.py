@@ -9,6 +9,7 @@ from freezegun.api import FrozenDateTimeFactory
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
@@ -170,8 +171,6 @@ async def test_ws_history_not_loaded(
     hass: HomeAssistant, hass_ws_client: WebSocketGenerator
 ) -> None:
     """Without a config entry the command reports not_loaded."""
-    from homeassistant.setup import async_setup_component
-
     assert await async_setup_component(hass, DOMAIN, {})
     client = await hass_ws_client(hass)
 

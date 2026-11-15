@@ -1,0 +1,26 @@
+# Lint der Integration und ihrer Tests (CI: Job "Ruff" in tests.yml).
+target-version = "py313"
+line-length = 100
+
+[lint]
+select = [
+    "E", "F", "W",  # pycodestyle, pyflakes
+    "B",            # bugbear
+    "BLE",          # blind except
+    "ASYNC",        # asyncio-Fallen
+    "I",            # Import-Reihenfolge
+    "PLC", "PLE", "PLW",
+    "SIM",
+    "UP",
+    "RUF",
+]
+ignore = [
+    "E501",  # Zeilenlänge: lange Texte und URLs bleiben lesbar
+]
+
+[lint.isort]
+# Reihenfolge wie in Home Assistant Core.
+force-sort-within-sections = true
+known-first-party = ["homeassistant", "pytest_homeassistant_custom_component"]
+combine-as-imports = true
+known-local-folder = ["custom_components"]

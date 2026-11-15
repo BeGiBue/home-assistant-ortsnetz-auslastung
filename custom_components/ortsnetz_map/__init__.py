@@ -99,7 +99,7 @@ class OrtsnetzDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch current map data."""
         try:
             data = await self._fetch_json(API_URL)
-        except Exception as err:  # noqa: BLE001
+        except Exception as err:
             raise UpdateFailed(f"Could not fetch Ortsnetz map data: {err}") from err
 
         if not isinstance(data, dict) or not isinstance(data.get("points"), list):
@@ -297,7 +297,7 @@ async def _async_register_card(hass: HomeAssistant) -> None:
 
         url = await _async_card_url(hass)
         add_extra_js_url(hass, url)
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.warning("Could not register the Ortsnetz Map dashboard card", exc_info=True)
         return
 
@@ -332,7 +332,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: OrtsnetzMapConfigEntry)
         from homeassistant.components.frontend import remove_extra_js_url  # noqa: PLC0415
 
         remove_extra_js_url(hass, url)
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.debug("Could not unregister the Ortsnetz Map dashboard card", exc_info=True)
 
 

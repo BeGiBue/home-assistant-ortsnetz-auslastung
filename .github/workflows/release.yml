@@ -5,6 +5,8 @@ name: Release
 # - Von Hand (Actions -> Release -> Run workflow, auf main): setzt zuerst die Version in
 #   manifest.json, VERSION und der Kopfzeile der Card, testet, committet, setzt den Tag
 #   und legt dann das Release an.
+# Beide Wege führen zuerst alle Tests aus (tests.yml: Ruff, Pytest, vitest, Playwright);
+# schlägt einer fehl, entstehen weder Commit noch Tag noch Release.
 # Release-Text ist der Abschnitt "## <Version>" aus CHANGELOG.md.
 # Versionen mit Bindestrich (z. B. 3.1.0-beta.1) werden als Vorabversion veröffentlicht.
 on:
@@ -25,8 +27,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+    permissions:
+      contents: read
+
   release:
     name: Prüfen, taggen, veröffentlichen
+    needs: tests
     runs-on: ubuntu-latest
     env:
       MANIFEST: custom_components/ortsnetz_map/manifest.json

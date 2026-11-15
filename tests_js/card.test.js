@@ -461,6 +461,28 @@ describe("Cluster als Tortendiagramme", () => {
     expect(second.removed).toBe(true);
   });
 
+  it("führt die Position nach, wenn dieselbe cluster_id mit gleichen Zahlen woanders liegt", () => {
+    const { card, map } = cardWithMap();
+    card._renderPoints({ points: [POINT] });
+    map.renderedFeatures = [cluster(1, { normal: 3 })];
+    card._updatePies();
+    const [marker] = markers;
+    const pie = marker.element.firstChild;
+    const setLngLat = vi.spyOn(marker, "setLngLat");
+
+    // Unverändert: weder neu positionieren noch neu aufbauen.
+    map.renderedFeatures = [cluster(1, { normal: 3 })];
+    card._updatePies();
+    expect(setLngLat).not.toHaveBeenCalled();
+
+    // Nach neuen Daten: gleiche Kennung und Zahlen, anderer Ort.
+    map.renderedFeatures = [cluster(1, { normal: 3 }, [9.5, 48.2])];
+    card._updatePies();
+    expect(markers).toHaveLength(1);
+    expect(marker.lngLat).toEqual([9.5, 48.2]);
+    expect(marker.element.firstChild).toBe(pie);
+  });
+
   it("lässt die Marker stehen, solange der Cluster-Layer fehlt (Stilwechsel)", () => {
     const { card, map } = cardWithMap();
     card._renderPoints({ points: [POINT] });
@@ -716,6 +738,98 @@ describe("Initialisierung", () => {
     second.hass = makeHass();
     document.body.appendChild(second);
     expect(mapLibreScript()).not.toBeNull();
+    // Offenen Ladeversuch beenden, damit er nicht in den nächsten Test hineinreicht.
+    mapLibreScript().dispatchEvent(new Event("error"));
+    await flush();
+  });
+});
+
+describe("Startfehler", () => {
+  it("entfernt ein geladenes Script ohne Bibliothek, damit der nächste Versuch neu lädt", async () => {
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    // load ohne window.ortsnetzMapLibre: Fehler beim Ausführen des Moduls.
+    mapLibreScript().dispatchEvent(new Event("load"));
+    await flush();
+
+    expect(card.querySelector(".ortsnetz-status").textContent).toBe(
+      "Fehler: MapLibre konnte nicht geladen werden",
+    );
+    expect(mapLibreScript()).toBeNull();
+
+    const second = newCard();
+    second.hass = makeHass();
+    document.body.appendChild(second);
+    window.ortsnetzMapLibre = fakeMapLibre;
+    mapLibreScript().dispatchEvent(new Event("load"));
+    await flush();
+    expect(second._map).toBe(maps[0]);
+  });
+
+  it("versucht den Aufbau nach 15 s erneut und zeigt dann die Karte", async () => {
+    vi.useFakeTimers();
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    mapLibreScript().dispatchEvent(new Event("error"));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(card.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
+    expect(card._map).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(15000);
+    window.ortsnetzMapLibre = fakeMapLibre;
+    mapLibreScript().dispatchEvent(new Event("load"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(maps).toHaveLength(1);
+    expect(card._map).toBe(maps[0]);
+    expect(card.querySelectorAll(".ortsnetz-map")).toHaveLength(1);
+  });
+
+  it("gibt nach drei erfolglosen Neuversuchen auf (15, 30, 60 s)", async () => {
+    vi.useFakeTimers();
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    let attempts = 0;
+    for (let i = 0; i < 6; i++) {
+      const script = mapLibreScript();
+      if (!script) break;
+      attempts += 1;
+      script.dispatchEvent(new Event("error"));
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(60000);
+    }
+    expect(attempts).toBe(4); // erster Aufbau und drei Neuversuche
+    expect(card.querySelector(".ortsnetz-status").textContent).toContain("Fehler");
+  });
+
+  it("versucht es nicht erneut, wenn die Card inzwischen entfernt wurde", async () => {
+    vi.useFakeTimers();
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    mapLibreScript().dispatchEvent(new Event("error"));
+    await vi.advanceTimersByTimeAsync(0);
+    card.remove();
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(mapLibreScript()).toBeNull();
+    expect(maps).toHaveLength(0);
+  });
+
+  it("räumt einen halbfertigen Aufbau ab, wenn die Karte nicht angelegt werden kann", async () => {
+    vi.useFakeTimers();
+    window.ortsnetzMapLibre = { ...fakeMapLibre, NavigationControl: class { constructor() { throw new Error("kein WebGL"); } } };
+    const card = newCard();
+    card.hass = makeHass();
+    document.body.appendChild(card);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(maps).toHaveLength(1);
+    expect(maps[0].removed).toBe(true);
+    expect(card._map).toBeNull();
+    expect(card.querySelector(".ortsnetz-status").textContent).toBe("Fehler: kein WebGL");
   });
 });
 
