@@ -1,4 +1,4 @@
-// Ortsnetz Map Card v3.1.0
+// Ortsnetz Map Card v3.1.1
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
 const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
@@ -274,8 +274,11 @@ function loadMapLibre() {
       script?.remove();
       reject(new Error("MapLibre konnte nicht geladen werden"));
     };
-    const done = () => {
-      if (!window.ortsnetzMapLibre) return fail(null);
+    // Geladen, aber ohne Bibliothek (z. B. Fehler beim Ausführen in einem alten WebView):
+    // Script ebenfalls entfernen. Sonst wartete der nächste Versuch auf ein load-Ereignis,
+    // das schon vorbei ist, und die Karte bliebe bei "Lade Messwerte …" stehen.
+    const done = (script) => {
+      if (!window.ortsnetzMapLibre) return fail(script);
       // Danach genügt die Prüfung auf window.ortsnetzMapLibre.
       mapLibrePromise = undefined;
       resolve(window.ortsnetzMapLibre);
@@ -286,7 +289,7 @@ function loadMapLibre() {
       if (window.ortsnetzMapLibre) {
         resolve(window.ortsnetzMapLibre);
       } else {
-        existing.addEventListener("load", done, { once: true });
+        existing.addEventListener("load", () => done(existing), { once: true });
         existing.addEventListener("error", () => fail(existing), { once: true });
       }
       return;
@@ -295,7 +298,7 @@ function loadMapLibre() {
     const script = document.createElement("script");
     script.type = "module";
     script.src = MAPLIBRE_JS;
-    script.onload = done;
+    script.onload = () => done(script);
     script.onerror = () => fail(script);
     document.head.appendChild(script);
   });
@@ -512,6 +515,7 @@ class OrtsnetzMapCard extends HTMLElement {
   }
 
   disconnectedCallback() {
+    this._initRetryCount = 0;
     this._destroy();
   }
 
@@ -525,6 +529,8 @@ class OrtsnetzMapCard extends HTMLElement {
     clearTimeout(this._retryTimer);
     this._retryTimer = null;
     this._retryCount = 0;
+    clearTimeout(this._initRetryTimer);
+    this._initRetryTimer = null;
     this._connection?.removeEventListener?.("ready", this._onReconnect);
     this._connection = null;
     if (this._resizeObserver) {
@@ -703,11 +709,29 @@ class OrtsnetzMapCard extends HTMLElement {
         this._updateOverlayOffset();
       }
       setTimeout(() => this._map?.resize(), 250);
+      this._initRetryCount = 0;
     } catch (error) {
       if (generation !== this._generation) return;
-      this._setStatus(`${texts(this._hass).error}: ${error?.message || error}`);
       console.error("Ortsnetz Map initialization failed", error);
+      // Halbfertigen Aufbau abräumen (Karte, Timer, Beobachter), Meldung stehen lassen
+      // und nach 15, 30 und 60 s erneut versuchen.
+      this._destroy(false);
+      this._statusElement = this.querySelector(".ortsnetz-status");
+      this._setStatus(`${texts(this._hass).error}: ${error?.message || error}`);
+      this._scheduleInitRetry();
     }
+  }
+
+  // Neuer Aufbau nach einem Startfehler (z. B. MapLibre nicht geladen). Höchstens so oft
+  // wie RETRY_DELAYS Einträge hat; Entfernen der Card beendet die Versuche.
+  _scheduleInitRetry() {
+    const delay = RETRY_DELAYS[this._initRetryCount ?? 0];
+    if (delay === undefined) return;
+    this._initRetryCount = (this._initRetryCount ?? 0) + 1;
+    this._initRetryTimer = setTimeout(() => {
+      this._initRetryTimer = null;
+      if (this.isConnected) this._initialize();
+    }, delay * 1000);
   }
 
   // Abstand von Legende und Statuszeile zum unteren Rand: Höhe der Ecke unten rechts
@@ -1450,6 +1474,11 @@ class OrtsnetzMapCard extends HTMLElement {
         marker = new this._maplibregl.Marker({ element }).setLngLat(feature.geometry.coordinates).addTo(map);
         this._pieMarkers.set(id, marker);
       }
+      // Nach neuen Daten kann dieselbe cluster_id einen Cluster an anderer Stelle meinen
+      // (auch mit gleichen Zahlen): Position nachführen, nur wenn sie sich geändert hat.
+      const [lng, lat] = feature.geometry.coordinates;
+      const previous = marker.ortsnetzFeature?.geometry.coordinates;
+      if (previous && (previous[0] !== lng || previous[1] !== lat)) marker.setLngLat([lng, lat]);
       marker.ortsnetzFeature = feature;
       if (marker.ortsnetzSignature !== signature) {
         const pie = this._clusterElement(p);

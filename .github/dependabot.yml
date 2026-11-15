@@ -4,8 +4,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    # Nur requirements_test.txt im Wurzelverzeichnis; die Mindestversion
-    # liegt unter .github/ci/ und bleibt fest.
+    # Nur requirements_test.txt und requirements_lint.txt im Wurzelverzeichnis;
+    # die Mindestversion liegt unter .github/ci/ und bleibt fest.
     groups:
       test-dependencies:
         patterns: ["*"]

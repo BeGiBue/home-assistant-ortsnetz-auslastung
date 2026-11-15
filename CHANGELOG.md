@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.1 — 2026-11-15
+
+Fixes from a code review. / Korrekturen aus einem Code-Review.
+
+- **Fix: cluster pie could stay at an old position.** After new data, MapLibre can reuse a cluster ID for a cluster somewhere else with the same counts; the pie now follows it. / **Fix: Cluster-Torte konnte an alter Stelle stehen bleiben.** Nach neuen Daten kann MapLibre eine Cluster-Kennung für einen Cluster an anderer Stelle mit gleichen Zahlen wiederverwenden; die Torte wird jetzt nachgeführt.
+- **Fix: card could hang at “Loading readings …”.** If the MapLibre script loaded but did not provide the library (for example in an old WebView), the next attempt waited forever. The script is now removed so the next attempt loads it again. / **Fix: Karte konnte bei „Lade Messwerte …“ hängen bleiben.** Lud das MapLibre-Script, ohne die Bibliothek bereitzustellen (etwa in einem alten WebView), wartete der nächste Versuch endlos. Das Script wird jetzt entfernt, sodass der nächste Versuch neu lädt.
+- **New attempt after a failed start.** If the map cannot be set up, the card cleans up and tries again after 15, 30 and 60 seconds instead of staying at “Error” until the page is reloaded. / **Neuer Versuch nach Startfehler.** Lässt sich die Karte nicht aufbauen, räumt die Karte auf und versucht es nach 15, 30 und 60 Sekunden erneut, statt bis zum Neuladen bei „Fehler“ zu bleiben.
+- Development: the release workflow now runs all tests (Ruff, pytest, vitest, Playwright) before it commits, tags or publishes; Ruff checks the Python code in CI. / Entwicklung: Der Release-Workflow führt jetzt alle Tests (Ruff, pytest, vitest, Playwright) aus, bevor er committet, taggt oder veröffentlicht; Ruff prüft den Python-Code in der CI.
+
+No changes to configuration. / Keine Änderungen an der Konfiguration.
+
 ## 3.1.0 — 2026-11-07
 
 - The card and its editor now appear in English by default and in German when Home Assistant is set to German; times and dates follow the selected language. The integration was already bilingual. / Karte und Editor erscheinen jetzt standardmäßig auf Englisch und auf Deutsch, wenn Home Assistant auf Deutsch eingestellt ist; Uhrzeiten und Datum folgen der eingestellten Sprache. Die Integration war bereits zweisprachig.
