@@ -9,9 +9,9 @@
     "test:browser": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.0",
+    "@playwright/test": "1.65.1",
     "@webcomponents/scoped-custom-element-registry": "0.0.10",
-    "jsdom": "31.0.0",
+    "jsdom": "31.0.1",
     "vitest": "5.1.0"
   }
 }
