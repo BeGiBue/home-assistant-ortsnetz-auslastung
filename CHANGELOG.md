@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2 — 2026-11-20
+
+- Maintenance: test and build tools updated, no functional changes. / Wartung: Test- und Build-Werkzeuge aktualisiert, keine Änderungen an der Funktion.
+
 ## 3.1.1 — 2026-11-15
 
 Fixes from a code review. / Korrekturen aus einem Code-Review.
