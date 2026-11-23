@@ -1395,3 +1395,71 @@ describe("Sprache", () => {
     expect(card._popupHtml({ l1_v: 230 })).toContain("Ortsnetz-Messpunkt");
   });
 });
+
+// ---- Ansicht hell/dunkel/automatisch ------------------------------------------------
+
+describe("Ansicht (theme)", () => {
+  async function cardWith(config, hass = makeHass()) {
+    window.ortsnetzMapLibre = fakeMapLibre;
+    const card = newCard();
+    card.setConfig({ type: "custom:ortsnetz-map-card", ...config });
+    card.hass = hass;
+    document.body.appendChild(card);
+    await flush();
+    return { card, map: maps.at(-1), wrap: card.shadowRoot.querySelector(".ortsnetz-wrap") };
+  }
+
+  it("hält die feste Ansicht unabhängig vom Theme", async () => {
+    const { card, map, wrap } = await cardWith({ theme: "dark" });
+    expect(card._isDarkTheme()).toBe(true);
+    expect(wrap.classList.contains("theme-dark")).toBe(true);
+    card.hass = makeHass({ themes: { darkMode: false } });
+    card.hass = makeHass({ themes: { darkMode: true } });
+    expect(map.setStyleCalls).toHaveLength(0);
+
+    const light = await cardWith({ theme: "light" }, makeHass({ themes: { darkMode: true } }));
+    expect(light.card._isDarkTheme()).toBe(false);
+    expect(light.wrap.classList.contains("theme-light")).toBe(true);
+  });
+
+  it("folgt bei auto dem Theme und setzt keine eigene Klasse", async () => {
+    const { card, wrap } = await cardWith({}, makeHass({ themes: { darkMode: true } }));
+    expect(card._isDarkTheme()).toBe(true);
+    expect(wrap.className).toBe("ortsnetz-wrap");
+  });
+
+  it("wechselt den Kartenstil beim Ändern im Editor, ohne neu aufzubauen", async () => {
+    const { card, map, wrap } = await cardWith({});
+    card.setConfig({ type: "custom:ortsnetz-map-card", theme: "dark" });
+    expect(map.setStyleCalls.at(-1).url).toContain("styles/dark");
+    expect(wrap.classList.contains("theme-dark")).toBe(true);
+    card.setConfig({ type: "custom:ortsnetz-map-card", theme: "auto" });
+    expect(map.setStyleCalls.at(-1).url).toContain("styles/liberty");
+    expect(wrap.classList.contains("theme-dark")).toBe(false);
+    expect(card._map).toBe(map);
+  });
+
+  it("ersetzt ungültige Werte durch auto", async () => {
+    const { card } = await cardWith({ theme: "blau" });
+    expect(card._config.theme).toBe("auto");
+  });
+
+  it("bietet im Editor Automatisch/Hell/Dunkel und schreibt auto nicht in die YAML", () => {
+    const editor = document.createElement("ortsnetz-map-card-editor");
+    editor.setConfig({ type: "custom:ortsnetz-map-card" });
+    editor.hass = makeHass();
+    const events = [];
+    editor.addEventListener("config-changed", (event) => events.push(event.detail.config));
+    const select = editor.shadowRoot.querySelector('[data-key="theme"]');
+    expect([...select.options].map((o) => [o.value, o.textContent])).toEqual([
+      ["auto", "Automatisch (nach Theme)"], ["light", "Hell"], ["dark", "Dunkel"],
+    ]);
+    expect(select.value).toBe("auto");
+    select.value = "dark";
+    select.dispatchEvent(new Event("change"));
+    expect(events.at(-1)).toEqual({ type: "custom:ortsnetz-map-card", theme: "dark" });
+    select.value = "auto";
+    select.dispatchEvent(new Event("change"));
+    expect(events.at(-1)).toEqual({ type: "custom:ortsnetz-map-card" });
+  });
+});

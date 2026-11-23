@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **New: appearance light / dark / automatic.** The card editor has a new “Appearance” option. “Automatic” (default) follows the active Home Assistant theme as before; “Light” and “Dark” fix the map, legend, status line and popup regardless of the theme. YAML: `theme: auto | light | dark`. / **Neu: Ansicht hell / dunkel / automatisch.** Im Karten-Editor gibt es die neue Option „Ansicht“. „Automatisch“ (Standard) folgt wie bisher dem aktiven Home-Assistant-Theme; „Hell“ und „Dunkel“ legen Karte, Legende, Statuszeile und Popup unabhängig vom Theme fest. YAML: `theme: auto | light | dark`.
+
 ## 3.1.2 — 2026-11-20
 
 - Maintenance: test and build tools updated, no functional changes. / Wartung: Test- und Build-Werkzeuge aktualisiert, keine Änderungen an der Funktion.
