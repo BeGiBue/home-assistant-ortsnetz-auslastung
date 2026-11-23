@@ -1,4 +1,4 @@
-// Ortsnetz Map Card v3.1.2
+// Ortsnetz Map Card v3.2.0
 // MapLibre GL wird von der Integration selbst ausgeliefert (kein externes CDN).
 const MAPLIBRE_VERSION = "6.4.1";
 const MAPLIBRE_BASE = "/ortsnetz_map/maplibre";
@@ -51,6 +51,10 @@ const I18N = {
     "cluster": "Cluster with {n} measuring points: {parts}. Tap to zoom in.",
     "unknown": "unknown",
     "e_display": "Display",
+    "e_theme": "Appearance",
+    "e_theme_auto": "Automatic (follow theme)",
+    "e_theme_light": "Light",
+    "e_theme_dark": "Dark",
     "e_zoom": "Zoom",
     "e_phase": "Phase for marker color",
     "e_all_phases": "All phases (worst value)",
@@ -107,6 +111,10 @@ const I18N = {
     "cluster": "Cluster mit {n} Messpunkten: {parts}. Antippen zum Hineinzoomen.",
     "unknown": "unbekannt",
     "e_display": "Darstellung",
+    "e_theme": "Ansicht",
+    "e_theme_auto": "Automatisch (nach Theme)",
+    "e_theme_light": "Hell",
+    "e_theme_dark": "Dunkel",
     "e_zoom": "Zoom",
     "e_phase": "Phase für Markerfarbe",
     "e_all_phases": "Alle Phasen (schlechtester Wert)",
@@ -216,8 +224,11 @@ const DEFAULT_CONFIG = {
   show_legend: true,
   // Ein Finger scrollt die Seite, zwei Finger bewegen die Karte (Strg + Mausrad zoomt).
   cooperative_gestures: true,
+  // auto: nach dem aktiven Home-Assistant-Theme; light/dark: fest.
+  theme: "auto",
   debug: false,
 };
+const THEMES = ["auto", "light", "dark"];
 
 // Eingaben der Konfiguration: Zahlenbereiche [min, max].
 const CONFIG_RANGES = { zoom: [1, 19], refresh_interval: [60, 3600], latitude: [-90, 90], longitude: [-180, 180] };
@@ -228,6 +239,7 @@ function normalizeConfig(config) {
   merged.zoom = clamp(merged.zoom, ...CONFIG_RANGES.zoom, DEFAULT_CONFIG.zoom);
   merged.refresh_interval = clamp(merged.refresh_interval, ...CONFIG_RANGES.refresh_interval, DEFAULT_CONFIG.refresh_interval);
   merged.phase = ["auto", "L1", "L2", "L3"].includes(String(merged.phase)) ? String(merged.phase) : "auto";
+  merged.theme = THEMES.includes(String(merged.theme)) ? String(merged.theme) : "auto";
   merged.show_status = merged.show_status !== false;
   merged.show_legend = merged.show_legend !== false;
   merged.debug = merged.debug === true;
@@ -485,6 +497,11 @@ class OrtsnetzMapCard extends HTMLElement {
       this._renderLegend();
     }
     if (this._debugElement) this._debugElement.hidden = !next.debug;
+    if (changed("theme")) {
+      const wrap = this._root.querySelector(".ortsnetz-wrap");
+      wrap?.classList.toggle("theme-light", next.theme === "light");
+      wrap?.classList.toggle("theme-dark", next.theme === "dark");
+    }
     const map = this._map;
     if (!map) return;
     if (next.debug) {
@@ -496,6 +513,7 @@ class OrtsnetzMapCard extends HTMLElement {
     }
     if (changed("refresh_interval")) this._startRefreshTimer();
     if (changed("phase")) this._renderPoints(this._currentData);
+    if (changed("theme")) this._applyTheme();
     if (changed("cooperative_gestures")) {
       if (next.cooperative_gestures) map.cooperativeGestures.enable();
       else map.cooperativeGestures.disable();
@@ -582,6 +600,9 @@ class OrtsnetzMapCard extends HTMLElement {
           :host { display:block; width:100%; height:100%; min-height:0; }
           ha-card { display:block; box-sizing:border-box; width:100%; height:100%; min-height:0; overflow:hidden; }
           .ortsnetz-wrap { position:relative; overflow:hidden; border-radius:var(--ha-card-border-radius, 12px); width:100%; height:100%; min-height:168px; }
+          /* Feste Ansicht (theme: light/dark): eigene Farben statt der des HA-Themes. */
+          .ortsnetz-wrap.theme-light { --primary-background-color:#fafafa; --card-background-color:#fff; --primary-text-color:#212121; --secondary-text-color:#727272; --divider-color:rgba(0,0,0,.12); color-scheme:light; }
+          .ortsnetz-wrap.theme-dark { --primary-background-color:#111111; --card-background-color:#1c1c1c; --primary-text-color:#e1e1e1; --secondary-text-color:#9b9b9b; --divider-color:rgba(225,225,225,.12); color-scheme:dark; }
           .ortsnetz-map { width:100%; height:100%; min-height:168px; background:var(--primary-background-color); }
           .ortsnetz-status { white-space:pre-line; box-sizing:border-box; max-width:min(60%, calc(100% - 140px)); position:absolute; z-index:5; left:10px; bottom:var(--ortsnetz-overlay-bottom, 40px); padding:6px 9px; border-radius:7px; font-size:11px; background:color-mix(in srgb, var(--card-background-color) 92%, transparent); color:var(--primary-text-color); box-shadow:0 1px 4px rgba(0,0,0,.2); pointer-events:none; }
           .ortsnetz-status[hidden] { display:none; }
@@ -638,7 +659,7 @@ class OrtsnetzMapCard extends HTMLElement {
           .chart-svg text { fill:currentColor; opacity:.65; font-size:9px; }
           .chart-svg .grid { stroke:currentColor; opacity:.15; }
         </style>
-        <div class="ortsnetz-wrap">
+        <div class="ortsnetz-wrap${this._themeClass()}">
           <div class="ortsnetz-map"></div>
           <div class="ortsnetz-status" ${this._config.show_status ? "" : "hidden"}>${texts(this._hass).loading}</div>
           <div class="ortsnetz-legend" ${this._config.show_legend ? "" : "hidden"}></div>
@@ -1247,7 +1268,13 @@ class OrtsnetzMapCard extends HTMLElement {
 
   // ---- Theme ---------------------------------------------------------------
 
+  _themeClass() {
+    return this._config.theme === "auto" ? "" : ` theme-${this._config.theme}`;
+  }
+
   _isDarkTheme() {
+    if (this._config.theme === "light") return false;
+    if (this._config.theme === "dark") return true;
     if (typeof this._hass?.themes?.darkMode === "boolean") return this._hass.themes.darkMode;
 
     const hostStyles = getComputedStyle(this);
@@ -1766,6 +1793,11 @@ class OrtsnetzMapCardEditor extends HTMLElement {
           <div class="section-title">${T.e_display}</div>
           <div class="grid">
             <label class="field">${T.e_zoom}<input data-key="zoom" type="number" min="1" max="19" step="1" value="${escapeHtml(view.zoom)}"></label>
+            <label class="field">${T.e_theme}<select data-key="theme">
+              <option value="auto" ${view.theme === "auto" ? "selected" : ""}>${T.e_theme_auto}</option>
+              <option value="light" ${view.theme === "light" ? "selected" : ""}>${T.e_theme_light}</option>
+              <option value="dark" ${view.theme === "dark" ? "selected" : ""}>${T.e_theme_dark}</option>
+            </select></label>
             <label class="field">${T.e_phase}<select data-key="phase">
               <option value="auto" ${view.phase === "auto" ? "selected" : ""}>${T.e_all_phases}</option>
               <option value="L1" ${view.phase === "L1" ? "selected" : ""}>L1</option>

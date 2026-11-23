@@ -18,7 +18,7 @@ Home Assistant integration with a dashboard card for the public measuring points
 - Marker color by the worst value of all measured phases; marker size by expected PV yield (kWh/kWp/day).
 - Collapsible legend with the readings of the last 24 hours per status; checkboxes hide single statuses.
 - Popup with L1/L2/L3, grid frequency, PV forecast and two 24-hour charts (voltage and frequency); outdated readings are shown transparent.
-- Cooperative gestures (can be turned off), dark mode from the active theme, OpenFreeMap vector map without API key, visual editor.
+- Cooperative gestures (can be turned off), light/dark appearance (fixed or following the active theme), OpenFreeMap vector map without API key, visual editor.
 - On-demand fetching without background polling, shared 5-minute cache; the card is loaded automatically, no dashboard resource needed.
 
 The card is shown in German when Home Assistant is set to German, and in English otherwise.
@@ -45,7 +45,7 @@ Home-Assistant-Integration mit Dashboard-Karte für die öffentlichen Messpunkte
 - Markerfarbe nach dem schlechtesten Wert aller gemessenen Phasen, Markergröße nach dem erwarteten PV-Ertrag (kWh/kWp/Tag).
 - Einklappbare Legende mit den Messungen der letzten 24 Stunden je Status; Häkchen blenden einzelne Status aus.
 - Popup mit L1/L2/L3, Netzfrequenz, PV-Forecast und zwei 24-Stunden-Verläufen (Spannung und Frequenz); veraltete Messungen erscheinen transparent.
-- Kooperative Gesten (abschaltbar), Dark Mode nach dem aktiven Theme, OpenFreeMap-Vektorkarte ohne API-Key, grafischer Editor.
+- Kooperative Gesten (abschaltbar), helle/dunkle Ansicht (fest oder nach dem aktiven Theme), OpenFreeMap-Vektorkarte ohne API-Key, grafischer Editor.
 - Bedarfsgesteuerter Abruf ohne Hintergrund-Polling, gemeinsamer 5-Minuten-Cache; die Karte wird automatisch geladen, keine Dashboard-Ressource nötig.
 
 Die Karte erscheint auf Deutsch, wenn Home Assistant auf Deutsch eingestellt ist, sonst auf Englisch.
