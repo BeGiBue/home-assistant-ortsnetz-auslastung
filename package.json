@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
-    "@webcomponents/scoped-custom-element-registry": "0.0.10",
+    "@webcomponents/scoped-custom-element-registry": "0.0.11",
     "jsdom": "31.0.1",
-    "vitest": "5.1.0"
+    "vitest": "5.1.1"
   }
 }
